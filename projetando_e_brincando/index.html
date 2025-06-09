@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monte Seu Brinquedo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="header">
+        <h1>🎮 Montador de Jogos</h1>
+        <div class="tabs">
+            <button class="tab-button active" data-tab="component-creator">🔧 Criar Componentes</button>
+            <button class="tab-button" data-tab="component-library">📚 Biblioteca de Componentes</button>
+            <button class="tab-button" data-tab="game-creator">🎯 Criar Jogos</button>
+            <button class="tab-button" data-tab="game-library">🏆 Biblioteca de Jogos</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Aba Criador de Componentes -->
+        <div id="component-creator" class="tab-content active">
+            <h2>🔧 Criador de Componentes</h2>
+            <div class="workspace">
+                <div class="shapes-panel">
+                    <h3>Elementos Disponíveis</h3>
+                    <div id="shapesGrid" class="shapes-grid"></div>
+                </div>
+                
+                <div>
+                    <h3>Área de Montagem</h3>
+                    <div id="shapeAssemblyArea" class="assembly-area"></div>
+                    <div class="controls">
+                        <button id="clearShapeAssembly" class="button button-danger">🗑️ Limpar</button>
+                        <button id="saveComponent" class="button button-primary">💾 Salvar Componente</button>
+                    </div>
+                </div>
+                
+                <div class="preview-panel">
+                    <h3>Preview</h3>
+                    <div id="componentPreview" class="preview-content">
+                        <p class="empty-state">Arraste elementos para a área de montagem para criar um componente</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aba Biblioteca de Componentes -->
+        <div id="component-library" class="tab-content">
+            <h2>📚 Biblioteca de Componentes</h2>
+            <div id="componentsGrid" class="library-grid">
+                <p class="empty-state">Seus componentes criados aparecerão aqui</p>
+            </div>
+        </div>
+
+        <!-- Aba Criador de Jogos -->
+        <div id="game-creator" class="tab-content">
+            <h2>🎯 Criador de Jogos</h2>
+            <div class="workspace">
+                <div class="shapes-panel">
+                    <h3>Componentes Disponíveis</h3>
+                    <div id="componentsSelection" class="components-selection">
+                        <p class="empty-state">Crie componentes primeiro para montar jogos</p>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3>Área de Montagem do Jogo</h3>
+                    <div id="gameAssemblyArea" class="assembly-area"></div>
+                    <div class="controls">
+                        <button id="clearGameAssembly" class="button button-danger">🗑️ Limpar</button>
+                        <button id="saveGame" class="button button-primary">💾 Salvar Jogo</button>
+                    </div>
+                </div>
+                
+                <div class="preview-panel">
+                    <h3>Preview do Jogo</h3>
+                    <div id="gamePreview" class="preview-content">
+                        <p class="empty-state">Arraste componentes para a área de montagem para criar um jogo</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aba Biblioteca de Jogos -->
+        <div id="game-library" class="tab-content">
+            <h2>🏆 Biblioteca de Jogos</h2>
+            <div id="gamesGrid" class="library-grid">
+                <p class="empty-state">Seus jogos criados aparecerão aqui</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulário de Componente -->
+    <div id="componentForm" class="form-overlay hidden">
+        <div class="form-content">
+            <h3>💾 Salvar Componente</h3>
+            <div class="form-group">
+                <label for="componentName">Nome do Componente:</label>
+                <input type="text" id="componentName" placeholder="Digite o nome do componente">
+            </div>
+            <div class="form-group">
+                <label for="componentIcon">Ícone (Emoji):</label>
+                <input type="text" id="componentIcon" placeholder="🔧" maxlength="2">
+            </div>
+            <div class="form-group">
+                <label for="componentCategory">Categoria:</label>
+                <select id="componentCategory">
+                    <option value="Peça Básica">Peça Básica</option>
+                    <option value="Estrutural">Estrutural</option>
+                    <option value="Decorativo">Decorativo</option>
+                    <option value="Funcional">Funcional</option>
+                </select>
+            </div>
+            <div class="controls">
+                <button id="confirmComponent" class="button button-primary">✅ Confirmar</button>
+                <button onclick="document.getElementById('componentForm').classList.add('hidden')" class="button button-secondary">❌ Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulário de Jogo -->
+    <div id="gameForm" class="form-overlay hidden">
+        <div class="form-content">
+            <h3>💾 Salvar Jogo</h3>
+            <div class="form-group">
+                <label for="gameName">Nome do Jogo:</label>
+                <input type="text" id="gameName" placeholder="Digite o nome do jogo">
+            </div>
+            <div class="form-group">
+                <label for="gameDescription">Descrição:</label>
+                <textarea id="gameDescription" rows="3" placeholder="Descreva como jogar ou as regras básicas"></textarea>
+            </div>
+            <div class="controls">
+                <button id="confirmGame" class="button button-primary">✅ Confirmar</button>
+                <button onclick="document.getElementById('gameForm').classList.add('hidden')" class="button button-secondary">❌ Cancelar</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
