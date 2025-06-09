@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criador de Brinquedos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="creator.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🎨 Criador de Brinquedos</h1>
+            <p>Arraste elementos para a área de criação e monte seu brinquedo personalizado!</p>
+        </header>
+
+        <div class="sidebar">
+            <h3>Formas Básicas</h3>
+            <div class="elements-grid">
+                <div class="element" draggable="true" data-shape="square">
+                    <div class="shape square"></div>
+                </div>
+                <div class="element" draggable="true" data-shape="circle">
+                    <div class="shape circle"></div>
+                </div>
+                <div class="element" draggable="true" data-shape="triangle">
+                    <div class="shape triangle"></div>
+                </div>
+                <div class="element" draggable="true" data-shape="rectangle">
+                    <div class="shape rectangle"></div>
+                </div>
+                <div class="element" draggable="true" data-shape="diamond">
+                    <div class="shape diamond"></div>
+                </div>
+                <div class="element" draggable="true" data-shape="star">
+                    <div class="shape star"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="canvas-area" id="canvas"></div>
+
+        <div class="sidebar creation-sidebar">
+            <h3>Componente em Criação</h3>
+            <p>Arraste formas para a área de montagem para criar um componente</p>
+            
+            <div class="tools">
+                <div class="tool-group">
+                    <label>Cores</label>
+                    <div class="color-palette">
+                        <div class="color-option color-red" data-color="linear-gradient(135deg, #ff6b6b, #ee5a24)"></div>
+                        <div class="color-option color-blue" data-color="linear-gradient(135deg, #3742fa, #2f3542)"></div>
+                        <div class="color-option color-green" data-color="linear-gradient(135deg, #2ed573, #1e90ff)"></div>
+                        <div class="color-option color-yellow" data-color="linear-gradient(135deg, #ffa502, #ff6348)"></div>
+                        <div class="color-option color-purple" data-color="linear-gradient(135deg, #5f27cd, #341f97)"></div>
+                        <div class="color-option color-orange" data-color="linear-gradient(135deg, #ff9ff3, #f368e0)"></div>
+                        <div class="color-option color-teal" data-color="linear-gradient(135deg, #0abde3, #006ba6)"></div>
+                        <div class="color-option color-pink" data-color="linear-gradient(135deg, #ff9ff3, #f368e0)"></div>
+                    </div>
+                </div>
+                
+                <div class="tool-group">
+                    <label>Tamanho</label>
+                    <input type="range" class="size-slider" id="sizeSlider" min="0.5" max="3" step="0.1" value="1">
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-danger" id="deleteBtn">🗑️ Excluir</button>
+                <button class="btn btn-secondary" id="duplicateBtn">📋 Duplicar</button>
+            </div>
+        </div>
+
+        <div class="footer">
+            <button class="btn btn-primary" id="saveBtn">💾 Salvar Brinquedo</button>
+            <button class="btn btn-secondary" id="clearBtn">🗑️ Limpar Tudo</button>
+            <button class="btn btn-secondary" id="backBtn">⬅️ Voltar</button>
+        </div>
+    </div>
+
+    <script src="creator.js"></script>
+</body>
+</html>
