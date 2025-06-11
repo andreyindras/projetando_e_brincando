@@ -17,7 +17,7 @@ const basicShapes = [
 ];
 
 // Inicialização
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     initializeTabs();
     createShapesGrid();
     loadSavedData();
@@ -32,15 +32,15 @@ function initializeTabs() {
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
             const targetTab = button.getAttribute('data-tab');
-            
+
             // Remove active class from all tabs and contents
             tabButtons.forEach(btn => btn.classList.remove('active'));
             tabContents.forEach(content => content.classList.remove('active'));
-            
+
             // Add active class to clicked tab and corresponding content
             button.classList.add('active');
             document.getElementById(targetTab).classList.add('active');
-            
+
             // Atualiza componentes disponíveis na aba de jogos
             if (targetTab === 'game-creator') {
                 updateComponentsSelection();
@@ -59,16 +59,16 @@ function createShapesGrid() {
         shapeElement.className = 'shape';
         shapeElement.draggable = true;
         shapeElement.dataset.shapeId = shape.id;
-        
+
         shapeElement.innerHTML = `
             <div class="shape-icon" style="color: ${shape.color}">${shape.icon}</div>
             <div class="shape-name">${shape.name}</div>
         `;
-        
+
         // Event listeners para drag and drop
         shapeElement.addEventListener('dragstart', handleShapeDragStart);
         shapeElement.addEventListener('dragend', handleDragEnd);
-        
+
         shapesGrid.appendChild(shapeElement);
     });
 }
@@ -136,13 +136,13 @@ function handleDragLeave(e) {
 function handleShapeDrop(e) {
     e.preventDefault();
     e.currentTarget.classList.remove('dragover');
-    
+
     if (!draggedElement || draggedElement.type !== 'shape') return;
-    
+
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left - 30; // Ajuste para centralizar
     const y = e.clientY - rect.top - 30;
-    
+
     addShapeToAssembly(draggedElement.data, x, y);
     updateComponentPreview();
 }
@@ -150,13 +150,13 @@ function handleShapeDrop(e) {
 function handleGameDrop(e) {
     e.preventDefault();
     e.currentTarget.classList.remove('dragover');
-    
+
     if (!draggedElement || draggedElement.type !== 'component') return;
-    
+
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left - 40;
     const y = e.clientY - rect.top - 40;
-    
+
     addComponentToGameAssembly(draggedElement.data, x, y);
     updateGamePreview();
 }
@@ -207,7 +207,7 @@ function addComponentToGameAssembly(component, x, y) {
     const assemblyArea = document.getElementById('gameAssemblyArea');
     const componentElement = document.createElement('div');
     const componentId = `game-comp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
+
     componentElement.className = 'assembly-component';
     componentElement.dataset.componentId = component.id;
     componentElement.dataset.uniqueId = componentId;
@@ -224,10 +224,10 @@ function addComponentToGameAssembly(component, x, y) {
     componentElement.style.alignItems = 'center';
     componentElement.style.justifyContent = 'center';
     componentElement.style.cursor = 'move';
-    
+
     // Criar preview visual do componente baseado nas suas formas
     const componentPreview = createComponentPreview(component);
-    
+
     componentElement.innerHTML = `
         <div class="component-preview" style="width: 100%; height: 60%; position: relative; overflow: hidden;">
             ${componentPreview}
@@ -238,7 +238,7 @@ function addComponentToGameAssembly(component, x, y) {
                        border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; 
                        cursor: pointer; z-index: 10;">×</button>
     `;
-    
+
     makeElementDraggable(componentElement);
     assemblyArea.appendChild(componentElement);
 }
@@ -248,10 +248,10 @@ function createComponentPreview(component) {
     if (!component.shapes || component.shapes.length === 0) {
         return `<div style="font-size: 1.2rem;">${component.icon}</div>`;
     }
-    
+
     // Calcula os limites das formas para normalizar as posições
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    
+
     component.shapes.forEach(shape => {
         const x = shape.position ? shape.position.x : 0;
         const y = shape.position ? shape.position.y : 0;
@@ -260,16 +260,16 @@ function createComponentPreview(component) {
         maxX = Math.max(maxX, x + 60); // assumindo tamanho padrão de 60px
         maxY = Math.max(maxY, y + 60);
     });
-    
+
     const width = maxX - minX || 60;
     const height = maxY - minY || 60;
     const scale = Math.min(50 / width, 40 / height); // escala para caber no preview
-    
+
     return component.shapes.map(shape => {
         const x = shape.position ? (shape.position.x - minX) * scale : 0;
         const y = shape.position ? (shape.position.y - minY) * scale : 0;
         const size = 12 * scale;
-        
+
         return `<div style="position: absolute; left: ${x}px; top: ${y}px; width: ${size}px; height: ${size}px;">
             ${createMiniShapeContent(shape, size)}
         </div>`;
@@ -281,7 +281,7 @@ function createMiniShapeContent(shape, size) {
     const miniShapeMap = {
         'circle': `<div style="width: ${size}px; height: ${size}px; border-radius: 50%; background-color: ${shape.color}; border: 1px solid ${shape.color};"></div>`,
         'square': `<div style="width: ${size}px; height: ${size}px; background-color: ${shape.color}; border: 1px solid ${shape.color};"></div>`,
-        'triangle': `<div style="width: 0; height: 0; border-left: ${size/2}px solid transparent; border-right: ${size/2}px solid transparent; border-bottom: ${size}px solid ${shape.color};"></div>`,
+        'triangle': `<div style="width: 0; height: 0; border-left: ${size / 2}px solid transparent; border-right: ${size / 2}px solid transparent; border-bottom: ${size}px solid ${shape.color};"></div>`,
         'rectangle': `<div style="width: ${size * 1.5}px; height: ${size}px; background-color: ${shape.color}; border: 1px solid ${shape.color};"></div>`,
         'diamond': `<div style="width: ${size}px; height: ${size}px; background-color: ${shape.color}; transform: rotate(45deg); border: 1px solid ${shape.color};"></div>`,
         'star': `<div style="font-size: ${size}px; color: ${shape.color};">⭐</div>`,
@@ -295,43 +295,43 @@ function createMiniShapeContent(shape, size) {
 function makeElementDraggable(element) {
     let isDragging = false;
     let startX, startY, startLeft, startTop;
-    
+
     element.addEventListener('mousedown', (e) => {
         if (e.target.tagName === 'BUTTON' || e.target.type === 'color') return;
-        
+
         isDragging = true;
         startX = e.clientX;
         startY = e.clientY;
         startLeft = parseInt(element.style.left);
         startTop = parseInt(element.style.top);
-        
+
         document.addEventListener('mousemove', handleMouseMove);
         document.addEventListener('mouseup', handleMouseUp);
-        
+
         e.preventDefault();
     });
-    
+
     function handleMouseMove(e) {
         if (!isDragging) return;
-        
+
         const deltaX = e.clientX - startX;
         const deltaY = e.clientY - startY;
         const newLeft = startLeft + deltaX;
         const newTop = startTop + deltaY;
-        
+
         const parent = element.parentElement;
         const maxLeft = parent.clientWidth - element.offsetWidth;
         const maxTop = parent.clientHeight - element.offsetHeight;
-        
+
         element.style.left = `${Math.max(0, Math.min(newLeft, maxLeft))}px`;
         element.style.top = `${Math.max(0, Math.min(newTop, maxTop))}px`;
     }
-    
+
     function handleMouseUp() {
         isDragging = false;
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
-        
+
         // Atualizar preview após mover
         if (element.classList.contains('assembly-element')) {
             updateComponentPreview();
@@ -342,7 +342,7 @@ function makeElementDraggable(element) {
 }
 
 //Remover forma da montagem
-window.removeShape = function(uniqueId) {
+window.removeShape = function (uniqueId) {
     const element = document.querySelector(`[data-unique-id="${uniqueId}"]`);
     if (element) {
         element.remove();
@@ -351,7 +351,7 @@ window.removeShape = function(uniqueId) {
 };
 
 //Remover componente do jogo
-window.removeGameComponent = function(uniqueId) {
+window.removeGameComponent = function (uniqueId) {
     const element = document.querySelector(`[data-unique-id="${uniqueId}"]`);
     if (element) {
         element.remove();
@@ -376,18 +376,18 @@ function updateComponentPreview() {
     const assemblyArea = document.getElementById('shapeAssemblyArea');
     const preview = document.getElementById('componentPreview');
     const shapes = assemblyArea.querySelectorAll('.assembly-element');
-    
+
     if (shapes.length === 0) {
         preview.innerHTML = '<p class="empty-state">Arraste formas para a área de montagem para criar um componente</p>';
         return;
     }
-    
+
     const shapesList = Array.from(shapes).map(shape => {
         const shapeId = shape.dataset.shapeId;
         const shapeData = basicShapes.find(s => s.id === shapeId);
         return `<span class="shape-tag">${shapeData.icon} ${shapeData.name}</span>`;
     }).join('');
-    
+
     preview.innerHTML = `
         <h4>Formas utilizadas:</h4>
         <div style="margin-top: 10px;">${shapesList}</div>
@@ -402,18 +402,18 @@ function updateGamePreview() {
     const assemblyArea = document.getElementById('gameAssemblyArea');
     const preview = document.getElementById('gamePreview');
     const components = assemblyArea.querySelectorAll('.assembly-component');
-    
+
     if (components.length === 0) {
         preview.innerHTML = '<p class="empty-state">Arraste componentes para a área de montagem para criar um jogo</p>';
         return;
     }
-    
+
     const componentsList = Array.from(components).map(comp => {
         const compId = comp.dataset.componentId;
         const compData = currentComponents[compId];
         return `<span class="component-tag">${compData.icon} ${compData.name}</span>`;
     }).join('');
-    
+
     preview.innerHTML = `
         <h4>Componentes utilizados:</h4>
         <div style="margin-top: 10px;">${componentsList}</div>
@@ -427,12 +427,12 @@ function updateGamePreview() {
 function showComponentForm() {
     const assemblyArea = document.getElementById('shapeAssemblyArea');
     const shapes = assemblyArea.querySelectorAll('.assembly-element');
-    
+
     if (shapes.length === 0) {
-        alert('Adicione pelo menos uma forma antes de salvar o componente!');
+        showAlert('Adicione pelo menos uma forma antes de salvar o componente!');
         return;
     }
-    
+
     document.getElementById('componentForm').classList.remove('hidden');
 }
 
@@ -440,36 +440,33 @@ function showComponentForm() {
 function showGameForm() {
     const assemblyArea = document.getElementById('gameAssemblyArea');
     const components = assemblyArea.querySelectorAll('.assembly-component');
-    
+
     if (components.length === 0) {
-        alert('Adicione pelo menos um componente antes de salvar o jogo!');
+        showAlert('Adicione pelo menos um componente antes de salvar o jogo!');
         return;
     }
-    
+
     document.getElementById('gameForm').classList.remove('hidden');
 }
 
 //Salvar componente
 function saveComponent() {
     const name = document.getElementById('componentName').value.trim();
-    const icon = document.getElementById('componentIcon').value.trim() || '🔧';
-    const category = document.getElementById('componentCategory').value;
-    
+
     if (!name) {
-        alert('Por favor, digite um nome para o componente!');
+        showAlert('Por favor, digite um nome para o componente!');
         return;
     }
-    
+
     const assemblyArea = document.getElementById('shapeAssemblyArea');
     const shapes = Array.from(assemblyArea.querySelectorAll('.assembly-element')).map(shape => {
         const shapeId = shape.dataset.shapeId;
         const shapeData = basicShapes.find(s => s.id === shapeId);
-        
-        // Captura cor personalizada se existir
+
         const figure = shape.querySelector('.shape-figure');
         const customColor = figure && figure.style.backgroundColor ? 
             figure.style.backgroundColor : shapeData.color;
-        
+
         return {
             ...shapeData,
             color: customColor,
@@ -484,9 +481,9 @@ function saveComponent() {
             rotation: parseInt(shape.dataset.rotation || '0')
         };
     });
-    
+
     if (shapes.length === 0) {
-        alert('Adicione pelo menos uma forma antes de salvar o componente!');
+        showAlert('Adicione pelo menos uma forma antes de salvar o componente!');
         return;
     }
 
@@ -494,36 +491,33 @@ function saveComponent() {
     const component = {
         id: componentId,
         name,
-        icon,
-        category,
+        icon: '🔧', // Ícone padrão
+        category: 'Peça Básica', // Categoria padrão
         shapes,
         createdAt: new Date().toISOString()
     };
-    
+
     currentComponents[componentId] = component;
     saveToStorage();
     displayComponents();
     updateComponentsSelection();
-    
-    // Limpar formulário e fechar
+
     document.getElementById('componentName').value = '';
-    document.getElementById('componentIcon').value = '';
     document.getElementById('componentForm').classList.add('hidden');
     clearShapeAssembly();
-    
-    alert('Componente salvo com sucesso!');
+
+    showAlert('Componente salvo com sucesso!');
 }
 
 // Salvar jogo
 function saveGame() {
     const name = document.getElementById('gameName').value.trim();
-    const description = document.getElementById('gameDescription').value.trim();
-    
+
     if (!name) {
-        alert('Por favor, digite um nome para o jogo!');
+        showAlert('Por favor, digite um nome para o jogo!');
         return;
     }
-    
+
     const assemblyArea = document.getElementById('gameAssemblyArea');
     const components = Array.from(assemblyArea.querySelectorAll('.assembly-component')).map(comp => {
         const compId = comp.dataset.componentId;
@@ -536,39 +530,37 @@ function saveGame() {
             }
         };
     });
-    
+
     const gameId = `game-${Date.now()}`;
     const game = {
         id: gameId,
         name,
-        description,
+        description: '', // Descrição vazia
         components,
         createdAt: new Date().toISOString()
     };
-    
+
     currentGames[gameId] = game;
     saveToStorage();
     displayGames();
-    
-    // Limpar formulário e fechar
+
     document.getElementById('gameName').value = '';
-    document.getElementById('gameDescription').value = '';
     document.getElementById('gameForm').classList.add('hidden');
     clearGameAssembly();
-    
-    alert('Jogo salvo com sucesso!');
+
+    showAlert('Jogo salvo com sucesso!');
 }
 
 // Exibir componentes na biblioteca
 function displayComponents() {
     const grid = document.getElementById('componentsGrid');
     const components = Object.values(currentComponents);
-    
+
     if (components.length === 0) {
         grid.innerHTML = '<p class="empty-state">Seus componentes criados aparecerão aqui</p>';
         return;
     }
-    
+
     grid.innerHTML = components.map(comp => `
         <div class="component-card">
             <div class="component-header">
@@ -590,12 +582,12 @@ function displayComponents() {
 function displayGames() {
     const grid = document.getElementById('gamesGrid');
     const games = Object.values(currentGames);
-    
+
     if (games.length === 0) {
         grid.innerHTML = '<p class="empty-state">Seus jogos criados aparecerão aqui</p>';
         return;
     }
-    
+
     grid.innerHTML = games.map(game => `
         <div class="game-card">
             <div class="game-title">${game.name}</div>
@@ -620,12 +612,12 @@ function displayGames() {
 function updateComponentsSelection() {
     const selection = document.getElementById('componentsSelection');
     const components = Object.values(currentComponents);
-    
+
     if (components.length === 0) {
         selection.innerHTML = '<p class="empty-state">Crie componentes primeiro para montar jogos</p>';
         return;
     }
-    
+
     selection.innerHTML = components.map(comp => `
         <div class="component-item" draggable="true" data-component-id="${comp.id}">
             <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">${comp.icon}</div>
@@ -633,14 +625,14 @@ function updateComponentsSelection() {
             <div style="font-size: 0.7rem; color: #6c757d;">${comp.category}</div>
         </div>
     `).join('');
-    
+
     //Adicionar event listeners para drag com referência direta
     const componentItems = selection.querySelectorAll('.component-item');
     componentItems.forEach(item => {
         item.addEventListener('dragstart', (e) => {
             const componentId = e.target.dataset.componentId;
             const component = currentComponents[componentId];
-            
+
             if (component) {
                 draggedElement = {
                     type: 'component',
@@ -650,7 +642,7 @@ function updateComponentsSelection() {
                 e.dataTransfer.setData('text/plain', '');
             }
         });
-        
+
         item.addEventListener('dragend', (e) => {
             draggedElement = null;
         });
@@ -659,23 +651,26 @@ function updateComponentsSelection() {
 
 // Excluir componente
 function deleteComponent(componentId) {
-    if (confirm('Tem certeza que deseja excluir este componente?')) {
-        delete currentComponents[componentId];
-        saveToStorage();
-        displayComponents();
-        updateComponentsSelection();
-    }
+    showConfirm('Tem certeza que deseja excluir este componente?', (confirmed) => {
+        if (confirmed) {
+            delete currentComponents[componentId];
+            saveToStorage();
+            displayComponents();
+            updateComponentsSelection();
+        }
+    });
 }
 
 // Excluir jogo
 function deleteGame(gameId) {
-    if (confirm('Tem certeza que deseja excluir este jogo?')) {
-        delete currentGames[gameId];
-        saveToStorage();
-        displayGames();
-    }
+    showConfirm('Tem certeza que deseja excluir este jogo?', (confirmed) => {
+        if (confirmed) {
+            delete currentGames[gameId];
+            saveToStorage();
+            displayGames();
+        }
+    });
 }
-
 // Salvar dados no armazenamento
 function saveToStorage() {
     console.log('Dados salvos em memória:', {
@@ -794,7 +789,7 @@ function changeShapeColor(uniqueId, color) {
 function toggleColorPicker(uniqueId) {
     const colorPicker = document.getElementById(`colorPicker-${uniqueId}`);
     const colorButton = document.querySelector(`[data-unique-id="${uniqueId}"] .color-btn`);
-    
+
     if (!colorPicker || !colorButton) return;
 
     if (colorPicker.classList.contains('hidden')) {
@@ -802,24 +797,24 @@ function toggleColorPicker(uniqueId) {
         document.querySelectorAll('.color-picker').forEach(picker => {
             picker.classList.add('hidden');
         });
-        
+
         // Posicionar o seletor de cor próximo ao botão
         const buttonRect = colorButton.getBoundingClientRect();
         const element = colorButton.closest('.assembly-element');
         const elementRect = element.getBoundingClientRect();
-        
+
         // Calcular posição relativa ao elemento pai
         const relativeX = buttonRect.left - elementRect.left;
         const relativeY = buttonRect.bottom - elementRect.top + 5; // 5px abaixo do botão
-        
+
         colorPicker.style.position = 'absolute';
         colorPicker.style.left = `${relativeX}px`;
         colorPicker.style.top = `${relativeY}px`;
         colorPicker.style.zIndex = '1000';
-        
+
         // Mostrar o seletor atual
         colorPicker.classList.remove('hidden');
-        
+
         // Pequeno delay para garantir que o elemento esteja visível antes de abrir
         setTimeout(() => {
             colorPicker.click();
@@ -830,7 +825,7 @@ function toggleColorPicker(uniqueId) {
 }
 
 // Desselecionar ao clicar na área de montagem
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const shapeAssemblyArea = document.getElementById('shapeAssemblyArea');
     if (shapeAssemblyArea) {
         shapeAssemblyArea.addEventListener('click', (e) => {
@@ -848,9 +843,9 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 //Função para garantir que os componentes sejam atualizados quando mudamos de aba
-window.addEventListener('DOMContentLoaded', function() {
-    const observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
+window.addEventListener('DOMContentLoaded', function () {
+    const observer = new MutationObserver(function (mutations) {
+        mutations.forEach(function (mutation) {
             if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
                 const gameTab = document.getElementById('game-creator');
                 if (gameTab && gameTab.classList.contains('active')) {
@@ -861,7 +856,7 @@ window.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    
+
     const gameTab = document.getElementById('game-creator');
     if (gameTab) {
         observer.observe(gameTab, { attributes: true, attributeFilter: ['class'] });
@@ -873,13 +868,44 @@ function refreshComponentsForGame() {
     updateComponentsSelection();
 }
 
+// Funções para modais personalizados
+function showAlert(message) {
+    const modal = document.getElementById('alertModal');
+    const messageElement = document.getElementById('alertMessage');
+    
+    messageElement.textContent = message;
+    modal.classList.add('active');
+    
+    document.getElementById('alertOk').onclick = function() {
+        modal.classList.remove('active');
+    };
+}
+
+function showConfirm(message, callback) {
+    const modal = document.getElementById('confirmModal');
+    const messageElement = document.getElementById('confirmMessage');
+    
+    messageElement.textContent = message;
+    modal.classList.add('active');
+    
+    document.getElementById('confirmYes').onclick = function() {
+        modal.classList.remove('active');
+        callback(true);
+    };
+    
+    document.getElementById('confirmNo').onclick = function() {
+        modal.classList.remove('active');
+        callback(false);
+    };
+}
+
 function exportGameToDXF(gameId) {
     const game = currentGames[gameId];
     if (!game) {
         alert('Jogo não encontrado!');
         return;
     }
-    
+
     // Cabeçalho DXF corrigido com unidades em milímetros
     let dxfContent = `0
 SECTION
@@ -950,25 +976,25 @@ ENTITIES
                 const compY = parseFloat(component.position?.y) || 0;
                 const shapeX = parseFloat(shape.position?.x) || 0;
                 const shapeY = parseFloat(shape.position?.y) || 0;
-                
+
                 // Posição final da forma
                 const x = compX + shapeX;
                 const y = compY + shapeY;
-                
+
                 // Dimensões da forma
                 const width = parseFloat(shape.size?.width) || 60;
                 const height = parseFloat(shape.size?.height) || 60;
-                
+
                 // Rotação da forma (se houver)
                 const rotation = parseFloat(shape.rotation) || 0;
-                
+
                 // Converter pixels para milímetros (assumindo 96 DPI)
                 const scale = 25.4 / 96; // conversão px para mm
                 const scaledX = x * scale;
                 const scaledY = y * scale;
                 const scaledWidth = width * scale;
                 const scaledHeight = height * scale;
-                
+
                 // Converter formas para entidades DXF
                 switch (shape.id) {
                     case 'circle':
@@ -977,18 +1003,18 @@ CIRCLE
 8
 SHAPES
 10
-${(scaledX + scaledWidth/2).toFixed(3)}
+${(scaledX + scaledWidth / 2).toFixed(3)}
 20
-${(scaledY + scaledHeight/2).toFixed(3)}
+${(scaledY + scaledHeight / 2).toFixed(3)}
 40
-${(Math.min(scaledWidth, scaledHeight)/2).toFixed(3)}
+${(Math.min(scaledWidth, scaledHeight) / 2).toFixed(3)}
 `;
                         if (rotation !== 0) {
                             // Círculos não precisam de rotação visual
                         }
                         entityCount++;
                         break;
-                        
+
                     case 'square':
                     case 'rectangle':
                         // Criar retângulo usando LWPOLYLINE fechada
@@ -998,12 +1024,12 @@ ${(Math.min(scaledWidth, scaledHeight)/2).toFixed(3)}
                             [scaledX + scaledWidth, scaledY + scaledHeight],
                             [scaledX, scaledY + scaledHeight]
                         ];
-                        
+
                         // Aplicar rotação se necessário
-                        const rotatedRectPoints = rotation !== 0 ? 
-                            rotatePoints(rectPoints, scaledX + scaledWidth/2, scaledY + scaledHeight/2, rotation) : 
+                        const rotatedRectPoints = rotation !== 0 ?
+                            rotatePoints(rectPoints, scaledX + scaledWidth / 2, scaledY + scaledHeight / 2, rotation) :
                             rectPoints;
-                        
+
                         dxfContent += `0
 LWPOLYLINE
 8
@@ -1022,19 +1048,19 @@ ${point[1].toFixed(3)}
                         });
                         entityCount++;
                         break;
-                        
+
                     case 'triangle':
                         // Criar triângulo equilátero usando LWPOLYLINE
                         const triPoints = [
-                            [scaledX + scaledWidth/2, scaledY], // topo
+                            [scaledX + scaledWidth / 2, scaledY], // topo
                             [scaledX + scaledWidth, scaledY + scaledHeight], // inferior direito
                             [scaledX, scaledY + scaledHeight] // inferior esquerdo
                         ];
-                        
-                        const rotatedTriPoints = rotation !== 0 ? 
-                            rotatePoints(triPoints, scaledX + scaledWidth/2, scaledY + scaledHeight/2, rotation) : 
+
+                        const rotatedTriPoints = rotation !== 0 ?
+                            rotatePoints(triPoints, scaledX + scaledWidth / 2, scaledY + scaledHeight / 2, rotation) :
                             triPoints;
-                        
+
                         dxfContent += `0
 LWPOLYLINE
 8
@@ -1053,18 +1079,18 @@ ${point[1].toFixed(3)}
                         });
                         entityCount++;
                         break;
-                        
+
                     case 'line':
                         // Criar linha horizontal (pode ser rotacionada)
-                        let lineStart = [scaledX, scaledY + scaledHeight/2];
-                        let lineEnd = [scaledX + scaledWidth, scaledY + scaledHeight/2];
-                        
+                        let lineStart = [scaledX, scaledY + scaledHeight / 2];
+                        let lineEnd = [scaledX + scaledWidth, scaledY + scaledHeight / 2];
+
                         if (rotation !== 0) {
-                            const center = [scaledX + scaledWidth/2, scaledY + scaledHeight/2];
+                            const center = [scaledX + scaledWidth / 2, scaledY + scaledHeight / 2];
                             lineStart = rotatePoint(lineStart[0], lineStart[1], center[0], center[1], rotation);
                             lineEnd = rotatePoint(lineEnd[0], lineEnd[1], center[0], center[1], rotation);
                         }
-                        
+
                         dxfContent += `0
 LINE
 8
@@ -1080,20 +1106,20 @@ ${lineEnd[1].toFixed(3)}
 `;
                         entityCount++;
                         break;
-                        
+
                     case 'diamond':
                         // Criar losango usando LWPOLYLINE
                         const diamondPoints = [
-                            [scaledX + scaledWidth/2, scaledY], // topo
-                            [scaledX + scaledWidth, scaledY + scaledHeight/2], // direita
-                            [scaledX + scaledWidth/2, scaledY + scaledHeight], // baixo
-                            [scaledX, scaledY + scaledHeight/2] // esquerda
+                            [scaledX + scaledWidth / 2, scaledY], // topo
+                            [scaledX + scaledWidth, scaledY + scaledHeight / 2], // direita
+                            [scaledX + scaledWidth / 2, scaledY + scaledHeight], // baixo
+                            [scaledX, scaledY + scaledHeight / 2] // esquerda
                         ];
-                        
-                        const rotatedDiamondPoints = rotation !== 0 ? 
-                            rotatePoints(diamondPoints, scaledX + scaledWidth/2, scaledY + scaledHeight/2, rotation) : 
+
+                        const rotatedDiamondPoints = rotation !== 0 ?
+                            rotatePoints(diamondPoints, scaledX + scaledWidth / 2, scaledY + scaledHeight / 2, rotation) :
                             diamondPoints;
-                        
+
                         dxfContent += `0
 LWPOLYLINE
 8
@@ -1112,13 +1138,13 @@ ${point[1].toFixed(3)}
                         });
                         entityCount++;
                         break;
-                        
+
                     case 'hexagon':
                         // Criar hexágono regular usando LWPOLYLINE
-                        const cx = scaledX + scaledWidth/2;
-                        const cy = scaledY + scaledHeight/2;
-                        const r = Math.min(scaledWidth, scaledHeight)/2;
-                        
+                        const cx = scaledX + scaledWidth / 2;
+                        const cy = scaledY + scaledHeight / 2;
+                        const r = Math.min(scaledWidth, scaledHeight) / 2;
+
                         const hexPoints = [];
                         for (let i = 0; i < 6; i++) {
                             const angle = (i * 60 + rotation) * Math.PI / 180;
@@ -1127,7 +1153,7 @@ ${point[1].toFixed(3)}
                                 cy + r * Math.sin(angle)
                             ]);
                         }
-                        
+
                         dxfContent += `0
 LWPOLYLINE
 8
@@ -1146,14 +1172,14 @@ ${point[1].toFixed(3)}
                         });
                         entityCount++;
                         break;
-                        
+
                     case 'star':
                         // Criar estrela de 5 pontas usando LWPOLYLINE
-                        const starCx = scaledX + scaledWidth/2;
-                        const starCy = scaledY + scaledHeight/2;
-                        const outerR = Math.min(scaledWidth, scaledHeight)/2;
+                        const starCx = scaledX + scaledWidth / 2;
+                        const starCy = scaledY + scaledHeight / 2;
+                        const outerR = Math.min(scaledWidth, scaledHeight) / 2;
                         const innerR = outerR * 0.4; // raio interno 40% do externo
-                        
+
                         const starPoints = [];
                         for (let i = 0; i < 10; i++) {
                             const angle = (i * 36 + rotation) * Math.PI / 180;
@@ -1163,7 +1189,7 @@ ${point[1].toFixed(3)}
                                 starCy + radius * Math.sin(angle)
                             ]);
                         }
-                        
+
                         dxfContent += `0
 LWPOLYLINE
 8
@@ -1182,7 +1208,7 @@ ${point[1].toFixed(3)}
                         });
                         entityCount++;
                         break;
-                        
+
                     default:
                         // Para formas não suportadas, criar um círculo de referência
                         dxfContent += `0
@@ -1190,11 +1216,11 @@ CIRCLE
 8
 SHAPES
 10
-${(scaledX + scaledWidth/2).toFixed(3)}
+${(scaledX + scaledWidth / 2).toFixed(3)}
 20
-${(scaledY + scaledHeight/2).toFixed(3)}
+${(scaledY + scaledHeight / 2).toFixed(3)}
 40
-${(Math.min(scaledWidth, scaledHeight)/2).toFixed(3)}
+${(Math.min(scaledWidth, scaledHeight) / 2).toFixed(3)}
 `;
                         entityCount++;
                         break;
@@ -1202,19 +1228,19 @@ ${(Math.min(scaledWidth, scaledHeight)/2).toFixed(3)}
             });
         }
     });
-    
+
     // Finalizar o arquivo DXF
     dxfContent += `0
 ENDSEC
 0
 EOF`;
-    
+
     // Verificar se há entidades para exportar
     if (entityCount === 0) {
         alert('Nenhuma forma válida encontrada para exportar!');
         return;
     }
-    
+
     // Criar e baixar o arquivo
     try {
         const blob = new Blob([dxfContent], { type: 'application/dxf' });
@@ -1226,7 +1252,7 @@ EOF`;
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        
+
         alert(`Arquivo DXF exportado com sucesso!\nFormas exportadas: ${entityCount}`);
     } catch (error) {
         console.error('Erro ao exportar DXF:', error);
@@ -1238,10 +1264,10 @@ function rotatePoint(x, y, centerX, centerY, angle) {
     const rad = angle * Math.PI / 180;
     const cos = Math.cos(rad);
     const sin = Math.sin(rad);
-    
+
     const dx = x - centerX;
     const dy = y - centerY;
-    
+
     return [
         centerX + dx * cos - dy * sin,
         centerY + dx * sin + dy * cos
@@ -1257,17 +1283,17 @@ function validateGameForDXF(game) {
     if (!game.components || game.components.length === 0) {
         return { valid: false, message: 'O jogo não possui componentes para exportar.' };
     }
-    
+
     let totalShapes = 0;
     for (const component of game.components) {
         if (component.shapes && component.shapes.length > 0) {
             totalShapes += component.shapes.length;
         }
     }
-    
+
     if (totalShapes === 0) {
         return { valid: false, message: 'O jogo não possui formas válidas para exportar.' };
     }
-    
+
     return { valid: true, totalShapes };
 }
