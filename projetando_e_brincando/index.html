@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Monte Seu Brinquedo</title>
-    <link href="https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Poppins:wght@400;600&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <div class="header">
         <h1>🎮 Montador de Jogos</h1>
@@ -27,7 +30,7 @@
                     <h3>Elementos Disponíveis</h3>
                     <div id="shapesGrid" class="shapes-grid"></div>
                 </div>
-                
+
                 <div>
                     <h3>Área de Montagem</h3>
                     <div id="shapeAssemblyArea" class="assembly-area"></div>
@@ -36,7 +39,7 @@
                         <button id="saveComponent" class="button button-primary">💾 Salvar Componente</button>
                     </div>
                 </div>
-                
+
                 <div class="preview-panel">
                     <h3>Preview</h3>
                     <div id="componentPreview" class="preview-content">
@@ -64,7 +67,7 @@
                         <p class="empty-state">Crie componentes primeiro para montar jogos</p>
                     </div>
                 </div>
-                
+
                 <div>
                     <h3>Área de Montagem do Jogo</h3>
                     <div id="gameAssemblyArea" class="assembly-area"></div>
@@ -73,7 +76,7 @@
                         <button id="saveGame" class="button button-primary">💾 Salvar Jogo</button>
                     </div>
                 </div>
-                
+
                 <div class="preview-panel">
                     <h3>Preview do Jogo</h3>
                     <div id="gamePreview" class="preview-content">
@@ -94,52 +97,60 @@
 
     <!-- Formulário de Componente -->
     <div id="componentForm" class="form-overlay hidden">
-        <div class="form-content">
+        <div class="form-content simple-form">
             <h3>💾 Salvar Componente</h3>
             <div class="form-group">
                 <label for="componentName">Nome do Componente:</label>
                 <input type="text" id="componentName" placeholder="Digite o nome do componente">
             </div>
-            <div class="form-group">
-                <label for="componentIcon">Ícone (Emoji):</label>
-                <input type="text" id="componentIcon" placeholder="🔧" maxlength="2">
-            </div>
-            <div class="form-group">
-                <label for="componentCategory">Categoria:</label>
-                <select id="componentCategory">
-                    <option value="Peça Básica">Peça Básica</option>
-                    <option value="Estrutural">Estrutural</option>
-                    <option value="Decorativo">Decorativo</option>
-                    <option value="Funcional">Funcional</option>
-                </select>
-            </div>
             <div class="controls">
-                <button id="confirmComponent" class="button button-primary">✅ Confirmar</button>
-                <button onclick="document.getElementById('componentForm').classList.add('hidden')" class="button button-secondary">❌ Cancelar</button>
+                <button id="confirmComponent" class="button button-primary">✅ Salvar</button>
+                <button onclick="document.getElementById('componentForm').classList.add('hidden')"
+                    class="button button-secondary">❌ Cancelar</button>
             </div>
         </div>
     </div>
 
     <!-- Formulário de Jogo -->
     <div id="gameForm" class="form-overlay hidden">
-        <div class="form-content">
+        <div class="form-content simple-form">
             <h3>💾 Salvar Jogo</h3>
             <div class="form-group">
                 <label for="gameName">Nome do Jogo:</label>
                 <input type="text" id="gameName" placeholder="Digite o nome do jogo">
             </div>
-            <div class="form-group">
-                <label for="gameDescription">Descrição:</label>
-                <textarea id="gameDescription" rows="3" placeholder="Descreva como jogar ou as regras básicas"></textarea>
-            </div>
             <div class="controls">
-                <button id="confirmGame" class="button button-primary">✅ Confirmar</button>
-                <button onclick="document.getElementById('gameForm').classList.add('hidden')" class="button button-secondary">❌ Cancelar</button>
+                <button id="confirmGame" class="button button-primary">✅ Salvar</button>
+                <button onclick="document.getElementById('gameForm').classList.add('hidden')"
+                    class="button button-secondary">❌ Cancelar</button>
             </div>
         </div>
     </div>
-    
+
+    <!-- Modal de Confirmação -->
+    <div id="confirmModal" class="confirm-modal">
+        <div class="confirm-content">
+            <div id="confirmMessage" class="confirm-message"></div>
+            <div class="confirm-buttons">
+                <button id="confirmYes" class="confirm-button confirm-button-primary">Sim</button>
+                <button id="confirmNo" class="confirm-button confirm-button-secondary">Não</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Alerta -->
+    <div id="alertModal" class="confirm-modal">
+        <div class="confirm-content">
+            <div id="alertMessage" class="confirm-message"></div>
+            <div class="confirm-buttons">
+                <button id="alertOk" class="confirm-button confirm-button-primary">OK</button>
+            </div>
+        </div>
+    </div>
+    </div>
+
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="script.js"></script>
 </body>
+
 </html>
