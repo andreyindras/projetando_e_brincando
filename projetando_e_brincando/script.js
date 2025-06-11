@@ -161,7 +161,6 @@ function handleGameDrop(e) {
     updateGamePreview();
 }
 
-// CORRIGIDO - addShapeToAssembly
 function addShapeToAssembly(shape, x, y) {
     const assemblyArea = document.getElementById('shapeAssemblyArea');
     const shapeElement = document.createElement('div');
@@ -203,7 +202,7 @@ function addShapeToAssembly(shape, x, y) {
     assemblyArea.appendChild(shapeElement);
 }
 
-// CORRIGIDO - Adicionar componente à área de montagem do jogo
+//Adicionar componente à área de montagem do jogo
 function addComponentToGameAssembly(component, x, y) {
     const assemblyArea = document.getElementById('gameAssemblyArea');
     const componentElement = document.createElement('div');
@@ -244,7 +243,7 @@ function addComponentToGameAssembly(component, x, y) {
     assemblyArea.appendChild(componentElement);
 }
 
-// NOVO - Criar preview visual do componente
+//Criar preview visual do componente
 function createComponentPreview(component) {
     if (!component.shapes || component.shapes.length === 0) {
         return `<div style="font-size: 1.2rem;">${component.icon}</div>`;
@@ -277,7 +276,7 @@ function createComponentPreview(component) {
     }).join('');
 }
 
-// NOVO - Criar conteúdo miniaturizado da forma
+//Criar conteúdo miniaturizado da forma
 function createMiniShapeContent(shape, size) {
     const miniShapeMap = {
         'circle': `<div style="width: ${size}px; height: ${size}px; border-radius: 50%; background-color: ${shape.color}; border: 1px solid ${shape.color};"></div>`,
@@ -342,7 +341,7 @@ function makeElementDraggable(element) {
     }
 }
 
-// CORRIGIDO - Remover forma da montagem
+//Remover forma da montagem
 window.removeShape = function(uniqueId) {
     const element = document.querySelector(`[data-unique-id="${uniqueId}"]`);
     if (element) {
@@ -351,7 +350,7 @@ window.removeShape = function(uniqueId) {
     }
 };
 
-// CORRIGIDO - Remover componente do jogo
+//Remover componente do jogo
 window.removeGameComponent = function(uniqueId) {
     const element = document.querySelector(`[data-unique-id="${uniqueId}"]`);
     if (element) {
@@ -450,7 +449,7 @@ function showGameForm() {
     document.getElementById('gameForm').classList.remove('hidden');
 }
 
-// CORRIGIDO - Salvar componente
+//Salvar componente
 function saveComponent() {
     const name = document.getElementById('componentName').value.trim();
     const icon = document.getElementById('componentIcon').value.trim() || '🔧';
@@ -610,13 +609,14 @@ function displayGames() {
                 </div>
             </div>
             <div class="game-actions">
+                <button onclick="exportGameToDXF('${game.id}')" class="button button-success" style="padding: 0.5rem 1rem; font-size: 0.8rem;">📐 Exportar DXF</button>
                 <button onclick="deleteGame('${game.id}')" class="button button-danger" style="padding: 0.5rem 1rem; font-size: 0.8rem;">🗑️ Excluir</button>
             </div>
         </div>
     `).join('');
 }
 
-// CORRIGIDO - Atualizar seleção de componentes na aba de jogos
+//Atualizar seleção de componentes na aba de jogos
 function updateComponentsSelection() {
     const selection = document.getElementById('componentsSelection');
     const components = Object.values(currentComponents);
@@ -634,7 +634,7 @@ function updateComponentsSelection() {
         </div>
     `).join('');
     
-    // CORRIGIDO - Adicionar event listeners para drag com referência direta
+    //Adicionar event listeners para drag com referência direta
     const componentItems = selection.querySelectorAll('.component-item');
     componentItems.forEach(item => {
         item.addEventListener('dragstart', (e) => {
@@ -676,7 +676,7 @@ function deleteGame(gameId) {
     }
 }
 
-// Salvar dados no armazenamento (usando variáveis em memória para Claude.ai)
+// Salvar dados no armazenamento
 function saveToStorage() {
     console.log('Dados salvos em memória:', {
         components: Object.keys(currentComponents).length,
@@ -757,7 +757,7 @@ function makeElementResizable(element) {
     });
 }
 
-// CORRIGIDO - Rodar a forma
+//Rodar a forma
 function rotateShape(uniqueId) {
     const element = document.querySelector(`[data-unique-id="${uniqueId}"]`);
     if (!element) return;
@@ -772,7 +772,7 @@ function rotateShape(uniqueId) {
     updateComponentPreview();
 }
 
-// CORRIGIDO - Mudar a cor da forma
+// Mudar a cor da forma
 function changeShapeColor(uniqueId, color) {
     const element = document.querySelector(`[data-unique-id="${uniqueId}"]`);
     if (!element) return;
@@ -790,7 +790,7 @@ function changeShapeColor(uniqueId, color) {
     updateComponentPreview();
 }
 
-// CORRIGIDO - Alternar o seletor de cor com posicionamento correto
+// Alternar o seletor de cor com posicionamento correto
 function toggleColorPicker(uniqueId) {
     const colorPicker = document.getElementById(`colorPicker-${uniqueId}`);
     const colorButton = document.querySelector(`[data-unique-id="${uniqueId}"] .color-btn`);
@@ -847,15 +847,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// NOVO - Função para garantir que os componentes sejam atualizados quando mudamos de aba
+//Função para garantir que os componentes sejam atualizados quando mudamos de aba
 window.addEventListener('DOMContentLoaded', function() {
-    // Observer para detectar mudanças nas abas e atualizar componentes
     const observer = new MutationObserver(function(mutations) {
         mutations.forEach(function(mutation) {
             if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
                 const gameTab = document.getElementById('game-creator');
                 if (gameTab && gameTab.classList.contains('active')) {
-                    // Pequeno delay para garantir que a aba esteja totalmente carregada
                     setTimeout(() => {
                         updateComponentsSelection();
                     }, 100);
@@ -870,7 +868,406 @@ window.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// NOVO - Função para atualizar componentes quando a aba de jogos é ativada
+//Função para atualizar componentes quando a aba de jogos é ativada
 function refreshComponentsForGame() {
     updateComponentsSelection();
+}
+
+function exportGameToDXF(gameId) {
+    const game = currentGames[gameId];
+    if (!game) {
+        alert('Jogo não encontrado!');
+        return;
+    }
+    
+    // Cabeçalho DXF corrigido com unidades em milímetros
+    let dxfContent = `0
+SECTION
+2
+HEADER
+9
+$ACADVER
+1
+AC1015
+9
+$INSUNITS
+70
+4
+9
+$MEASUREMENT
+70
+1
+0
+ENDSEC
+0
+SECTION
+2
+TABLES
+0
+TABLE
+2
+LAYER
+70
+2
+0
+LAYER
+2
+0
+70
+0
+62
+7
+6
+CONTINUOUS
+0
+LAYER
+2
+SHAPES
+70
+0
+62
+1
+6
+CONTINUOUS
+0
+ENDTAB
+0
+ENDSEC
+0
+SECTION
+2
+ENTITIES
+`;
+
+    let entityCount = 0;
+
+    // Processar cada componente do jogo
+    game.components.forEach((component, compIndex) => {
+        if (component.shapes && component.shapes.length > 0) {
+            component.shapes.forEach((shape, shapeIndex) => {
+                // Calcular posições absolutas corretamente
+                const compX = parseFloat(component.position?.x) || 0;
+                const compY = parseFloat(component.position?.y) || 0;
+                const shapeX = parseFloat(shape.position?.x) || 0;
+                const shapeY = parseFloat(shape.position?.y) || 0;
+                
+                // Posição final da forma
+                const x = compX + shapeX;
+                const y = compY + shapeY;
+                
+                // Dimensões da forma
+                const width = parseFloat(shape.size?.width) || 60;
+                const height = parseFloat(shape.size?.height) || 60;
+                
+                // Rotação da forma (se houver)
+                const rotation = parseFloat(shape.rotation) || 0;
+                
+                // Converter pixels para milímetros (assumindo 96 DPI)
+                const scale = 25.4 / 96; // conversão px para mm
+                const scaledX = x * scale;
+                const scaledY = y * scale;
+                const scaledWidth = width * scale;
+                const scaledHeight = height * scale;
+                
+                // Converter formas para entidades DXF
+                switch (shape.id) {
+                    case 'circle':
+                        dxfContent += `0
+CIRCLE
+8
+SHAPES
+10
+${(scaledX + scaledWidth/2).toFixed(3)}
+20
+${(scaledY + scaledHeight/2).toFixed(3)}
+40
+${(Math.min(scaledWidth, scaledHeight)/2).toFixed(3)}
+`;
+                        if (rotation !== 0) {
+                            // Círculos não precisam de rotação visual
+                        }
+                        entityCount++;
+                        break;
+                        
+                    case 'square':
+                    case 'rectangle':
+                        // Criar retângulo usando LWPOLYLINE fechada
+                        const rectPoints = [
+                            [scaledX, scaledY],
+                            [scaledX + scaledWidth, scaledY],
+                            [scaledX + scaledWidth, scaledY + scaledHeight],
+                            [scaledX, scaledY + scaledHeight]
+                        ];
+                        
+                        // Aplicar rotação se necessário
+                        const rotatedRectPoints = rotation !== 0 ? 
+                            rotatePoints(rectPoints, scaledX + scaledWidth/2, scaledY + scaledHeight/2, rotation) : 
+                            rectPoints;
+                        
+                        dxfContent += `0
+LWPOLYLINE
+8
+SHAPES
+90
+4
+70
+1
+`;
+                        rotatedRectPoints.forEach(point => {
+                            dxfContent += `10
+${point[0].toFixed(3)}
+20
+${point[1].toFixed(3)}
+`;
+                        });
+                        entityCount++;
+                        break;
+                        
+                    case 'triangle':
+                        // Criar triângulo equilátero usando LWPOLYLINE
+                        const triPoints = [
+                            [scaledX + scaledWidth/2, scaledY], // topo
+                            [scaledX + scaledWidth, scaledY + scaledHeight], // inferior direito
+                            [scaledX, scaledY + scaledHeight] // inferior esquerdo
+                        ];
+                        
+                        const rotatedTriPoints = rotation !== 0 ? 
+                            rotatePoints(triPoints, scaledX + scaledWidth/2, scaledY + scaledHeight/2, rotation) : 
+                            triPoints;
+                        
+                        dxfContent += `0
+LWPOLYLINE
+8
+SHAPES
+90
+3
+70
+1
+`;
+                        rotatedTriPoints.forEach(point => {
+                            dxfContent += `10
+${point[0].toFixed(3)}
+20
+${point[1].toFixed(3)}
+`;
+                        });
+                        entityCount++;
+                        break;
+                        
+                    case 'line':
+                        // Criar linha horizontal (pode ser rotacionada)
+                        let lineStart = [scaledX, scaledY + scaledHeight/2];
+                        let lineEnd = [scaledX + scaledWidth, scaledY + scaledHeight/2];
+                        
+                        if (rotation !== 0) {
+                            const center = [scaledX + scaledWidth/2, scaledY + scaledHeight/2];
+                            lineStart = rotatePoint(lineStart[0], lineStart[1], center[0], center[1], rotation);
+                            lineEnd = rotatePoint(lineEnd[0], lineEnd[1], center[0], center[1], rotation);
+                        }
+                        
+                        dxfContent += `0
+LINE
+8
+SHAPES
+10
+${lineStart[0].toFixed(3)}
+20
+${lineStart[1].toFixed(3)}
+11
+${lineEnd[0].toFixed(3)}
+21
+${lineEnd[1].toFixed(3)}
+`;
+                        entityCount++;
+                        break;
+                        
+                    case 'diamond':
+                        // Criar losango usando LWPOLYLINE
+                        const diamondPoints = [
+                            [scaledX + scaledWidth/2, scaledY], // topo
+                            [scaledX + scaledWidth, scaledY + scaledHeight/2], // direita
+                            [scaledX + scaledWidth/2, scaledY + scaledHeight], // baixo
+                            [scaledX, scaledY + scaledHeight/2] // esquerda
+                        ];
+                        
+                        const rotatedDiamondPoints = rotation !== 0 ? 
+                            rotatePoints(diamondPoints, scaledX + scaledWidth/2, scaledY + scaledHeight/2, rotation) : 
+                            diamondPoints;
+                        
+                        dxfContent += `0
+LWPOLYLINE
+8
+SHAPES
+90
+4
+70
+1
+`;
+                        rotatedDiamondPoints.forEach(point => {
+                            dxfContent += `10
+${point[0].toFixed(3)}
+20
+${point[1].toFixed(3)}
+`;
+                        });
+                        entityCount++;
+                        break;
+                        
+                    case 'hexagon':
+                        // Criar hexágono regular usando LWPOLYLINE
+                        const cx = scaledX + scaledWidth/2;
+                        const cy = scaledY + scaledHeight/2;
+                        const r = Math.min(scaledWidth, scaledHeight)/2;
+                        
+                        const hexPoints = [];
+                        for (let i = 0; i < 6; i++) {
+                            const angle = (i * 60 + rotation) * Math.PI / 180;
+                            hexPoints.push([
+                                cx + r * Math.cos(angle),
+                                cy + r * Math.sin(angle)
+                            ]);
+                        }
+                        
+                        dxfContent += `0
+LWPOLYLINE
+8
+SHAPES
+90
+6
+70
+1
+`;
+                        hexPoints.forEach(point => {
+                            dxfContent += `10
+${point[0].toFixed(3)}
+20
+${point[1].toFixed(3)}
+`;
+                        });
+                        entityCount++;
+                        break;
+                        
+                    case 'star':
+                        // Criar estrela de 5 pontas usando LWPOLYLINE
+                        const starCx = scaledX + scaledWidth/2;
+                        const starCy = scaledY + scaledHeight/2;
+                        const outerR = Math.min(scaledWidth, scaledHeight)/2;
+                        const innerR = outerR * 0.4; // raio interno 40% do externo
+                        
+                        const starPoints = [];
+                        for (let i = 0; i < 10; i++) {
+                            const angle = (i * 36 + rotation) * Math.PI / 180;
+                            const radius = i % 2 === 0 ? outerR : innerR;
+                            starPoints.push([
+                                starCx + radius * Math.cos(angle),
+                                starCy + radius * Math.sin(angle)
+                            ]);
+                        }
+                        
+                        dxfContent += `0
+LWPOLYLINE
+8
+SHAPES
+90
+10
+70
+1
+`;
+                        starPoints.forEach(point => {
+                            dxfContent += `10
+${point[0].toFixed(3)}
+20
+${point[1].toFixed(3)}
+`;
+                        });
+                        entityCount++;
+                        break;
+                        
+                    default:
+                        // Para formas não suportadas, criar um círculo de referência
+                        dxfContent += `0
+CIRCLE
+8
+SHAPES
+10
+${(scaledX + scaledWidth/2).toFixed(3)}
+20
+${(scaledY + scaledHeight/2).toFixed(3)}
+40
+${(Math.min(scaledWidth, scaledHeight)/2).toFixed(3)}
+`;
+                        entityCount++;
+                        break;
+                }
+            });
+        }
+    });
+    
+    // Finalizar o arquivo DXF
+    dxfContent += `0
+ENDSEC
+0
+EOF`;
+    
+    // Verificar se há entidades para exportar
+    if (entityCount === 0) {
+        alert('Nenhuma forma válida encontrada para exportar!');
+        return;
+    }
+    
+    // Criar e baixar o arquivo
+    try {
+        const blob = new Blob([dxfContent], { type: 'application/dxf' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${game.name.replace(/[^a-zA-Z0-9\-_]/g, '_')}.dxf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        alert(`Arquivo DXF exportado com sucesso!\nFormas exportadas: ${entityCount}`);
+    } catch (error) {
+        console.error('Erro ao exportar DXF:', error);
+        alert('Erro ao exportar arquivo DXF. Verifique o console para mais detalhes.');
+    }
+}
+
+function rotatePoint(x, y, centerX, centerY, angle) {
+    const rad = angle * Math.PI / 180;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    
+    const dx = x - centerX;
+    const dy = y - centerY;
+    
+    return [
+        centerX + dx * cos - dy * sin,
+        centerY + dx * sin + dy * cos
+    ];
+}
+
+function rotatePoints(points, centerX, centerY, angle) {
+    return points.map(point => rotatePoint(point[0], point[1], centerX, centerY, angle));
+}
+
+// FUNÇÃO ADICIONAL PARA VALIDAR DADOS ANTES DA EXPORTAÇÃO
+function validateGameForDXF(game) {
+    if (!game.components || game.components.length === 0) {
+        return { valid: false, message: 'O jogo não possui componentes para exportar.' };
+    }
+    
+    let totalShapes = 0;
+    for (const component of game.components) {
+        if (component.shapes && component.shapes.length > 0) {
+            totalShapes += component.shapes.length;
+        }
+    }
+    
+    if (totalShapes === 0) {
+        return { valid: false, message: 'O jogo não possui formas válidas para exportar.' };
+    }
+    
+    return { valid: true, totalShapes };
 }
