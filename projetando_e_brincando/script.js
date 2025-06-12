@@ -902,7 +902,14 @@ function showConfirm(message, callback) {
 function exportGameToDXF(gameId) {
     const game = currentGames[gameId];
     if (!game) {
-        alert('Jogo não encontrado!');
+        showAlert('Jogo não encontrado!');
+        return;
+    }
+
+    // Validar se o jogo tem componentes válidos
+    const validation = validateGameForDXF(game);
+    if (!validation.valid) {
+        showAlert(validation.message);
         return;
     }
 
@@ -1009,9 +1016,6 @@ ${(scaledY + scaledHeight / 2).toFixed(3)}
 40
 ${(Math.min(scaledWidth, scaledHeight) / 2).toFixed(3)}
 `;
-                        if (rotation !== 0) {
-                            // Círculos não precisam de rotação visual
-                        }
                         entityCount++;
                         break;
 
@@ -1237,7 +1241,7 @@ EOF`;
 
     // Verificar se há entidades para exportar
     if (entityCount === 0) {
-        alert('Nenhuma forma válida encontrada para exportar!');
+        showAlert('Nenhuma forma válida encontrada para exportar!');
         return;
     }
 
@@ -1253,13 +1257,14 @@ EOF`;
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
-        alert(`Arquivo DXF exportado com sucesso!\nFormas exportadas: ${entityCount}`);
+        showAlert(`Arquivo DXF exportado com sucesso!\n\nJogo: ${game.name}\nFormas exportadas: ${entityCount}\nUnidades: milímetros`);
     } catch (error) {
         console.error('Erro ao exportar DXF:', error);
-        alert('Erro ao exportar arquivo DXF. Verifique o console para mais detalhes.');
+        showAlert('Erro ao exportar arquivo DXF. Verifique o console para mais detalhes.');
     }
 }
 
+// Função auxiliar para rotacionar um ponto
 function rotatePoint(x, y, centerX, centerY, angle) {
     const rad = angle * Math.PI / 180;
     const cos = Math.cos(rad);
@@ -1274,11 +1279,12 @@ function rotatePoint(x, y, centerX, centerY, angle) {
     ];
 }
 
+// Função auxiliar para rotacionar múltiplos pontos
 function rotatePoints(points, centerX, centerY, angle) {
     return points.map(point => rotatePoint(point[0], point[1], centerX, centerY, angle));
 }
 
-// FUNÇÃO ADICIONAL PARA VALIDAR DADOS ANTES DA EXPORTAÇÃO
+// Função para validar dados antes da exportação
 function validateGameForDXF(game) {
     if (!game.components || game.components.length === 0) {
         return { valid: false, message: 'O jogo não possui componentes para exportar.' };
