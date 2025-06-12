@@ -5,8 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Monte Seu Brinquedo</title>
-    <link href="https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Poppins:wght@400;600&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 
@@ -14,36 +13,44 @@
     <div class="header">
         <h1>🎮 Montador de Jogos</h1>
         <div class="tabs">
-            <button class="tab-button active" data-tab="component-creator">🔧 Criar Componentes</button>
-            <button class="tab-button" data-tab="component-library">📚 Biblioteca de Componentes</button>
-            <button class="tab-button" data-tab="game-creator">🎯 Criar Jogos</button>
-            <button class="tab-button" data-tab="game-library">🏆 Biblioteca de Jogos</button>
+            <button class="tab-button active" data-tab="component-creator">Criar Componentes</button>
+            <button class="tab-button" data-tab="component-library">Meus Componentes</button>
+            <button class="tab-button" data-tab="game-creator">Criar Jogos</button>
+            <button class="tab-button" data-tab="game-library">Meus Jogos</button>
         </div>
     </div>
 
     <div class="container">
         <!-- Aba Criador de Componentes -->
         <div id="component-creator" class="tab-content active">
-            <h2>🔧 Criador de Componentes</h2>
+            <div class="section-header">
+                <h2>Criador de Componentes</h2>
+                <p>Arraste elementos para criar seus próprios componentes personalizados</p>
+            </div>
+            
             <div class="workspace">
-                <div class="shapes-panel">
+                <div class="panel">
                     <h3>Elementos Disponíveis</h3>
                     <div id="shapesGrid" class="shapes-grid"></div>
                 </div>
 
-                <div>
+                <div class="main-area">
                     <h3>Área de Montagem</h3>
-                    <div id="shapeAssemblyArea" class="assembly-area"></div>
-                    <div class="controls">
-                        <button id="clearShapeAssembly" class="button button-danger">🗑️ Limpar</button>
-                        <button id="saveComponent" class="button button-primary">💾 Salvar Componente</button>
+                    <div id="shapeAssemblyArea" class="assembly-area">
+                        <div class="assembly-placeholder">
+                            <p>Arraste elementos aqui para começar</p>
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <button id="clearShapeAssembly" class="btn btn-outline">Limpar</button>
+                        <button id="saveComponent" class="btn btn-primary">Salvar Componente</button>
                     </div>
                 </div>
 
-                <div class="preview-panel">
+                <div class="panel">
                     <h3>Preview</h3>
                     <div id="componentPreview" class="preview-content">
-                        <p class="empty-state">Arraste elementos para a área de montagem para criar um componente</p>
+                        <p class="empty-message">Seu componente aparecerá aqui</p>
                     </div>
                 </div>
             </div>
@@ -51,36 +58,53 @@
 
         <!-- Aba Biblioteca de Componentes -->
         <div id="component-library" class="tab-content">
-            <h2>📚 Biblioteca de Componentes</h2>
+            <div class="section-header">
+                <h2>Meus Componentes</h2>
+                <p>Todos os componentes que você criou</p>
+            </div>
             <div id="componentsGrid" class="library-grid">
-                <p class="empty-state">Seus componentes criados aparecerão aqui</p>
+                <div class="empty-state">
+                    <div class="empty-icon">📦</div>
+                    <h3>Nenhum componente ainda</h3>
+                    <p>Crie seu primeiro componente na aba "Criar Componentes"</p>
+                </div>
             </div>
         </div>
 
         <!-- Aba Criador de Jogos -->
         <div id="game-creator" class="tab-content">
-            <h2>🎯 Criador de Jogos</h2>
+            <div class="section-header">
+                <h2>Criador de Jogos</h2>
+                <p>Use seus componentes para criar jogos incríveis</p>
+            </div>
+            
             <div class="workspace">
-                <div class="shapes-panel">
+                <div class="panel">
                     <h3>Componentes Disponíveis</h3>
                     <div id="componentsSelection" class="components-selection">
-                        <p class="empty-state">Crie componentes primeiro para montar jogos</p>
+                        <div class="empty-message">
+                            <p>Crie componentes primeiro para montar jogos</p>
+                        </div>
                     </div>
                 </div>
 
-                <div>
+                <div class="main-area">
                     <h3>Área de Montagem do Jogo</h3>
-                    <div id="gameAssemblyArea" class="assembly-area"></div>
-                    <div class="controls">
-                        <button id="clearGameAssembly" class="button button-danger">🗑️ Limpar</button>
-                        <button id="saveGame" class="button button-primary">💾 Salvar Jogo</button>
+                    <div id="gameAssemblyArea" class="assembly-area">
+                        <div class="assembly-placeholder">
+                            <p>Monte seu jogo aqui</p>
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <button id="clearGameAssembly" class="btn btn-outline">Limpar</button>
+                        <button id="saveGame" class="btn btn-primary">Salvar Jogo</button>
                     </div>
                 </div>
 
-                <div class="preview-panel">
+                <div class="panel">
                     <h3>Preview do Jogo</h3>
                     <div id="gamePreview" class="preview-content">
-                        <p class="empty-state">Arraste componentes para a área de montagem para criar um jogo</p>
+                        <p class="empty-message">Seu jogo aparecerá aqui</p>
                     </div>
                 </div>
             </div>
@@ -88,41 +112,46 @@
 
         <!-- Aba Biblioteca de Jogos -->
         <div id="game-library" class="tab-content">
-            <h2>🏆 Biblioteca de Jogos</h2>
+            <div class="section-header">
+                <h2>Meus Jogos</h2>
+                <p>Todos os jogos que você criou</p>
+            </div>
             <div id="gamesGrid" class="library-grid">
-                <p class="empty-state">Seus jogos criados aparecerão aqui</p>
+                <div class="empty-state">
+                    <div class="empty-icon">🏆</div>
+                    <h3>Nenhum jogo ainda</h3>
+                    <p>Crie seu primeiro jogo na aba "Criar Jogos"</p>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Formulário de Componente -->
-    <div id="componentForm" class="form-overlay hidden">
-        <div class="form-content simple-form">
-            <h3>💾 Salvar Componente</h3>
+    <div id="componentForm" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3>Salvar Componente</h3>
             <div class="form-group">
-                <label for="componentName">Nome do Componente:</label>
-                <input type="text" id="componentName" placeholder="Digite o nome do componente">
+                <label for="componentName">Nome do Componente</label>
+                <input type="text" id="componentName" placeholder="Digite um nome para seu componente">
             </div>
-            <div class="controls">
-                <button id="confirmComponent" class="button button-primary">✅ Salvar</button>
-                <button onclick="document.getElementById('componentForm').classList.add('hidden')"
-                    class="button button-secondary">❌ Cancelar</button>
+            <div class="modal-buttons">
+                <button id="confirmComponent" class="btn btn-primary">Salvar</button>
+                <button onclick="document.getElementById('componentForm').classList.add('hidden')" class="btn btn-outline">Cancelar</button>
             </div>
         </div>
     </div>
 
     <!-- Formulário de Jogo -->
-    <div id="gameForm" class="form-overlay hidden">
-        <div class="form-content simple-form">
-            <h3>💾 Salvar Jogo</h3>
+    <div id="gameForm" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3>Salvar Jogo</h3>
             <div class="form-group">
-                <label for="gameName">Nome do Jogo:</label>
-                <input type="text" id="gameName" placeholder="Digite o nome do jogo">
+                <label for="gameName">Nome do Jogo</label>
+                <input type="text" id="gameName" placeholder="Digite um nome para seu jogo">
             </div>
-            <div class="controls">
-                <button id="confirmGame" class="button button-primary">✅ Salvar</button>
-                <button onclick="document.getElementById('gameForm').classList.add('hidden')"
-                    class="button button-secondary">❌ Cancelar</button>
+            <div class="modal-buttons">
+                <button id="confirmGame" class="btn btn-primary">Salvar</button>
+                <button onclick="document.getElementById('gameForm').classList.add('hidden')" class="btn btn-outline">Cancelar</button>
             </div>
         </div>
     </div>
@@ -132,8 +161,8 @@
         <div class="confirm-content">
             <div id="confirmMessage" class="confirm-message"></div>
             <div class="confirm-buttons">
-                <button id="confirmYes" class="confirm-button confirm-button-primary">Sim</button>
-                <button id="confirmNo" class="confirm-button confirm-button-secondary">Não</button>
+                <button id="confirmYes" class="btn btn-primary">Sim</button>
+                <button id="confirmNo" class="btn btn-outline">Não</button>
             </div>
         </div>
     </div>
@@ -143,10 +172,9 @@
         <div class="confirm-content">
             <div id="alertMessage" class="confirm-message"></div>
             <div class="confirm-buttons">
-                <button id="alertOk" class="confirm-button confirm-button-primary">OK</button>
+                <button id="alertOk" class="btn btn-primary">OK</button>
             </div>
         </div>
-    </div>
     </div>
 
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
