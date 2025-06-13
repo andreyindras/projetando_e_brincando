@@ -1,1305 +1,977 @@
-// Estado da aplicação
-let currentComponents = {};
-let currentGames = {};
-let draggedElement = null;
-let dragOffset = { x: 0, y: 0 };
-
-// Formas básicas disponíveis
-const basicShapes = [
-    { id: 'circle', name: 'Círculo', icon: '⭕', color: '#ff6b6b' },
-    { id: 'square', name: 'Quadrado', icon: '🟦', color: '#4ecdc4' },
-    { id: 'triangle', name: 'Triângulo', icon: '🔺', color: '#45b7d1' },
-    { id: 'rectangle', name: 'Retângulo', icon: '🟪', color: '#96ceb4' },
-    { id: 'diamond', name: 'Losango', icon: '🔷', color: '#feca57' },
-    { id: 'star', name: 'Estrela', icon: '⭐', color: '#ff9ff3' },
-    { id: 'line', name: 'Linha', icon: '➖', color: '#000000' },
-    { id: 'hexagon', name: 'Hexágono', icon: '⬡', color: '#54a0ff' }
-];
-
-// Inicialização
-document.addEventListener('DOMContentLoaded', function () {
-    initializeTabs();
-    createShapesGrid();
-    loadSavedData();
-    setupEventListeners();
-});
-
-// Gerenciamento de abas
-function initializeTabs() {
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const tabContents = document.querySelectorAll('.tab-content');
-
-    tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const targetTab = button.getAttribute('data-tab');
-
-            // Remove active class from all tabs and contents
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            tabContents.forEach(content => content.classList.remove('active'));
-
-            // Add active class to clicked tab and corresponding content
-            button.classList.add('active');
-            document.getElementById(targetTab).classList.add('active');
-
-            // Atualiza componentes disponíveis na aba de jogos
-            if (targetTab === 'game-creator') {
-                updateComponentsSelection();
-            }
-        });
-    });
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-// Criação da grade de formas básicas
-function createShapesGrid() {
-    const shapesGrid = document.getElementById('shapesGrid');
-    shapesGrid.innerHTML = '';
-
-    basicShapes.forEach(shape => {
-        const shapeElement = document.createElement('div');
-        shapeElement.className = 'shape';
-        shapeElement.draggable = true;
-        shapeElement.dataset.shapeId = shape.id;
-
-        shapeElement.innerHTML = `
-            <div class="shape-icon" style="color: ${shape.color}">${shape.icon}</div>
-            <div class="shape-name">${shape.name}</div>
-        `;
-
-        // Event listeners para drag and drop
-        shapeElement.addEventListener('dragstart', handleShapeDragStart);
-        shapeElement.addEventListener('dragend', handleDragEnd);
-
-        shapesGrid.appendChild(shapeElement);
-    });
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: #2c3e50;
+    line-height: 1.6;
 }
 
-// Configuração de event listeners
-function setupEventListeners() {
-    // Área de montagem de componentes
-    const shapeAssemblyArea = document.getElementById('shapeAssemblyArea');
-    shapeAssemblyArea.addEventListener('dragover', handleDragOver);
-    shapeAssemblyArea.addEventListener('drop', handleShapeDrop);
-    shapeAssemblyArea.addEventListener('dragleave', handleDragLeave);
-
-    // Área de montagem de jogos
-    const gameAssemblyArea = document.getElementById('gameAssemblyArea');
-    gameAssemblyArea.addEventListener('dragover', handleDragOver);
-    gameAssemblyArea.addEventListener('drop', handleGameDrop);
-    gameAssemblyArea.addEventListener('dragleave', handleDragLeave);
-
-    // Botões de controle
-    document.getElementById('clearShapeAssembly').addEventListener('click', clearShapeAssembly);
-    document.getElementById('saveComponent').addEventListener('click', showComponentForm);
-    document.getElementById('clearGameAssembly').addEventListener('click', clearGameAssembly);
-    document.getElementById('saveGame').addEventListener('click', showGameForm);
-
-    // Formulários
-    document.getElementById('confirmComponent').addEventListener('click', saveComponent);
-    document.getElementById('confirmGame').addEventListener('click', saveGame);
+.header {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 1.5rem 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(10px);
 }
 
-// Handlers de drag and drop para formas
-function handleShapeDragStart(e) {
-    draggedElement = {
-        type: 'shape',
-        data: basicShapes.find(s => s.id === e.target.dataset.shapeId)
-    };
-    e.dataTransfer.effectAllowed = 'copy';
+.header h1 {
+    text-align: center;
+    color: #2c3e50;
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
 }
 
-function handleComponentDragStart(e) {
-    const componentId = e.target.dataset.componentId;
-    draggedElement = {
-        type: 'component',
-        data: currentComponents[componentId]
-    };
-    e.dataTransfer.effectAllowed = 'copy';
-    e.dataTransfer.setData('text/plain', ''); // Para compatibilidade
+.tabs {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
 }
 
-function handleDragEnd(e) {
-    draggedElement = null;
+.tab-button {
+    padding: 0.8rem 1.8rem;
+    background: white;
+    color: #667eea;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-function handleDragOver(e) {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'copy';
-    e.currentTarget.classList.add('dragover');
+.tab-button:hover {
+    background: #f8fafc;
+    border-color: #667eea;
+    transform: translateY(-1px);
 }
 
-function handleDragLeave(e) {
-    if (!e.currentTarget.contains(e.relatedTarget)) {
-        e.currentTarget.classList.remove('dragover');
+.tab-button.active {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.container {
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+}
+
+.tab-content {
+    display: none;
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.section-header h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.section-header p {
+    color: #64748b;
+    font-size: 1rem;
+}
+
+.workspace {
+    display: grid;
+    grid-template-columns: 300px 1fr 300px;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+@media (max-width: 1200px) {
+    .workspace {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
     }
 }
 
-function handleShapeDrop(e) {
-    e.preventDefault();
-    e.currentTarget.classList.remove('dragover');
-
-    if (!draggedElement || draggedElement.type !== 'shape') return;
-
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left - 30; // Ajuste para centralizar
-    const y = e.clientY - rect.top - 30;
-
-    addShapeToAssembly(draggedElement.data, x, y);
-    updateComponentPreview();
+.panel {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid #e2e8f0;
 }
 
-function handleGameDrop(e) {
-    e.preventDefault();
-    e.currentTarget.classList.remove('dragover');
-
-    if (!draggedElement || draggedElement.type !== 'component') return;
-
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left - 40;
-    const y = e.clientY - rect.top - 40;
-
-    addComponentToGameAssembly(draggedElement.data, x, y);
-    updateGamePreview();
+.main-area {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid #e2e8f0;
 }
 
-function addShapeToAssembly(shape, x, y) {
-    const assemblyArea = document.getElementById('shapeAssemblyArea');
-    const shapeElement = document.createElement('div');
-    const shapeId = `shape-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-    shapeElement.className = 'assembly-element';
-    shapeElement.dataset.shapeId = shape.id;
-    shapeElement.dataset.uniqueId = shapeId;
-    shapeElement.style.position = 'absolute';
-    shapeElement.style.left = `${Math.max(0, Math.min(x, assemblyArea.clientWidth - 60))}px`;
-    shapeElement.style.top = `${Math.max(0, Math.min(y, assemblyArea.clientHeight - 60))}px`;
-    shapeElement.style.width = '60px';
-    shapeElement.style.height = '60px';
-    shapeElement.style.cursor = 'pointer';
-
-    const figureContent = createShapeContent(shape);
-
-    shapeElement.innerHTML = `
-        <div class="element-content">
-            ${figureContent}
-        </div>
-        <div class="element-controls">
-            <button class="control-btn delete-btn" onclick="event.stopPropagation(); removeShape('${shapeId}')">×</button>
-            <button class="control-btn rotate-btn" onclick="event.stopPropagation(); rotateShape('${shapeId}')">⟳</button>
-            <button class="control-btn color-btn" onclick="event.stopPropagation(); toggleColorPicker('${shapeId}')">🎨</button>
-        </div>
-        <input type="color" class="color-picker hidden" id="colorPicker-${shapeId}" onchange="changeShapeColor('${shapeId}', this.value)" />
-        <div class="resize-handle"></div>
-    `;
-
-    shapeElement.addEventListener('click', (e) => {
-        e.stopPropagation();
-        selectElement(shapeElement);
-    });
-
-    makeElementDraggable(shapeElement);
-    makeElementResizable(shapeElement);
-
-    assemblyArea.appendChild(shapeElement);
+.panel h3,
+.main-area h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 1rem;
 }
 
-//Adicionar componente à área de montagem do jogo
-function addComponentToGameAssembly(component, x, y) {
-    const assemblyArea = document.getElementById('gameAssemblyArea');
-    const componentElement = document.createElement('div');
-    const componentId = `game-comp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-    componentElement.className = 'assembly-component';
-    componentElement.dataset.componentId = component.id;
-    componentElement.dataset.uniqueId = componentId;
-    componentElement.style.position = 'absolute';
-    componentElement.style.left = `${Math.max(0, Math.min(x, assemblyArea.clientWidth - 80))}px`;
-    componentElement.style.top = `${Math.max(0, Math.min(y, assemblyArea.clientHeight - 80))}px`;
-    componentElement.style.width = '80px';
-    componentElement.style.height = '80px';
-    componentElement.style.border = '2px solid #007bff';
-    componentElement.style.borderRadius = '8px';
-    componentElement.style.backgroundColor = '#f8f9fa';
-    componentElement.style.display = 'flex';
-    componentElement.style.flexDirection = 'column';
-    componentElement.style.alignItems = 'center';
-    componentElement.style.justifyContent = 'center';
-    componentElement.style.cursor = 'move';
-
-    // Criar preview visual do componente baseado nas suas formas
-    const componentPreview = createComponentPreview(component);
-
-    componentElement.innerHTML = `
-        <div class="component-preview" style="width: 100%; height: 60%; position: relative; overflow: hidden;">
-            ${componentPreview}
-        </div>
-        <div style="font-size: 0.7rem; text-align: center; margin-top: 2px; font-weight: bold;">${component.name}</div>
-        <button onclick="event.stopPropagation(); removeGameComponent('${componentId}')" 
-                style="position: absolute; top: -8px; right: -8px; background: #dc3545; color: white; 
-                       border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; 
-                       cursor: pointer; z-index: 10;">×</button>
-    `;
-
-    makeElementDraggable(componentElement);
-    assemblyArea.appendChild(componentElement);
+.shapes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
 }
 
-//Criar preview visual do componente
-function createComponentPreview(component) {
-    if (!component.shapes || component.shapes.length === 0) {
-        return `<div style="font-size: 1.2rem;">${component.icon}</div>`;
+.shape {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    cursor: grab;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    min-height: 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.shape:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: #667eea;
+}
+
+.shape:active {
+    cursor: grabbing;
+}
+
+.shape-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.3rem;
+}
+
+.shape-name {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #64748b;
+}
+
+.assembly-area {
+    background: white;
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    min-height: 400px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.assembly-area.dragover {
+    border-color: #667eea;
+    background-color: #f0f4ff;
+}
+
+.assembly-placeholder {
+    text-align: center;
+    color: #94a3b8;
+    pointer-events: none;
+}
+
+.placeholder-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.6;
+}
+
+.assembly-placeholder p {
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.assembly-element {
+    position: absolute;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+    border-radius: 4px;
+}
+
+.assembly-element:hover {
+    z-index: 10;
+}
+
+.assembly-element.selected {
+    z-index: 15;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.element-content {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.element-controls {
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
+    background: white;
+    border-radius: 20px;
+    padding: 6px 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    gap: 6px;
+    z-index: 20;
+    border: 1px solid #e2e8f0;
+}
+
+.assembly-element.selected .element-controls {
+    display: flex;
+}
+
+.control-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+.control-btn:hover {
+    transform: scale(1.05);
+}
+
+.delete-btn {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.delete-btn:hover {
+    background: #fecaca;
+}
+
+.rotate-btn {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.rotate-btn:hover {
+    background: #fde68a;
+}
+
+.resize-btn {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.resize-btn:hover {
+    background: #bfdbfe;
+}
+
+.color-btn {
+    background: #ede9fe;
+    color: #7c3aed;
+}
+
+.color-btn:hover {
+    background: #ddd6fe;
+}
+
+.color-picker {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    opacity: 0;
+    position: absolute;
+}
+
+.resize-handle {
+    position: absolute;
+    bottom: -6px;
+    right: -6px;
+    width: 14px;
+    height: 14px;
+    background: #667eea;
+    border-radius: 50%;
+    cursor: nw-resize;
+    display: none;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.assembly-element.selected .resize-handle {
+    display: block;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    justify-content: center;
+}
+
+.btn {
+    padding: 0.8rem 1.6rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-outline {
+    background: white;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.btn-outline:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.preview-content {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    min-height: 150px;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.empty-message {
+    text-align: center;
+    color: #94a3b8;
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
+.library-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.component-card,
+.game-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.component-card:hover,
+.game-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border-color: #667eea;
+}
+
+.component-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.component-icon {
+    font-size: 1.5rem;
+}
+
+.component-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.component-category {
+    background: #f1f5f9;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #64748b;
+    margin-bottom: 1rem;
+}
+
+.component-shapes {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-bottom: 1rem;
+}
+
+.components-selection {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.component-item {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    cursor: grab;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.component-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: #667eea;
+}
+
+.game-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.game-description {
+    color: #64748b;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.game-components h4 {
+    color: #374151;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.components-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.component-chip {
+    background: #ecfdf5;
+    color: #065f46;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.game-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: #64748b;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.6;
+}
+
+.empty-state h3 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #374151;
+}
+
+.empty-state p {
+    font-size: 0.95rem;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 400px;
+}
+
+.modal-content h3 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #374151;
+    font-size: 0.9rem;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.confirm-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    backdrop-filter: blur(4px);
+}
+
+.confirm-modal.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.confirm-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+}
+
+.confirm-message {
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+    color: #374151;
+}
+
+.confirm-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.shape-figure {
+    width: 100%;
+    height: 100%;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.circle-fig {
+    background-color: #ff6b6b;
+    border-radius: 50%;
+    border: 2px solid #ff5252;
+}
+
+.square-fig {
+    background-color: #4ecdc4;
+    border: 2px solid #26a69a;
+    border-radius: 4px;
+}
+
+.triangle-fig {
+    width: 0;
+    height: 0;
+    background: transparent;
+    border-left: 30px solid transparent;
+    border-right: 30px solid transparent;
+    border-bottom: 52px solid #45b7d1;
+    border-radius: 0;
+}
+
+.rectangle-fig {
+    background-color: #96ceb4;
+    border: 2px solid #81c784;
+    border-radius: 4px;
+    width: 100%;
+    height: 60%;
+    margin: auto;
+}
+
+.diamond-fig {
+    background-color: #feca57;
+    border: 2px solid #ffb74d;
+    transform: rotate(45deg);
+    border-radius: 4px;
+    width: 70%;
+    height: 70%;
+}
+
+.star-fig {
+    background: #ff9ff3;
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    border: 2px solid #f48fb1;
+}
+
+.line-fig {
+    width: 100%;
+    height: 6px;
+    background: #333;
+    border-radius: 3px;
+    margin: auto;
+    transform-origin: center;
+}
+
+.hexagon-fig {
+    background-color: #54a0ff;
+    width: 100%;
+    height: 86.6%;
+    clip-path: polygon(30% 0%, 70% 0%, 100% 50%, 70% 100%, 30% 100%, 0% 50%);
+    border: 2px solid #2196f3;
+}
+
+.assembly-element .triangle-fig {
+    border-left-width: calc(50% - 2px);
+    border-right-width: calc(50% - 2px);
+    border-bottom-width: calc(86.6% - 2px);
+}
+
+.text-element .element-content {
+    background: transparent;
+    border: 2px dashed transparent;
+    padding: 5px 10px;
+    border-radius: 5px;
+    min-width: 60px;
+    min-height: 30px;
+}
+
+.text-element.selected .element-content {
+    border-color: #667eea;
+}
+
+.text-content {
+    font-size: 16px;
+    font-weight: 500;
+    color: #374151;
+    outline: none;
+    background: transparent;
+    border: none;
+    text-align: center;
+    min-width: 60px;
+}
+
+.line-element {
+    position: absolute;
+    transform-origin: left center;
+}
+
+.line-content {
+    height: 4px;
+    background: #374151;
+    border-radius: 2px;
+    width: 100px;
+}
+
+.arrow-element {
+    font-size: 2rem;
+    color: #374151;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.shape-tag,
+.component-tag {
+    display: inline-block;
+    background: #f1f5f9;
+    padding: 0.25rem 0.75rem;
+    margin: 0.2rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #64748b;
+}
+
+.component-tag {
+    background: #ecfdf5;
+    color: #065f46;
+}
+
+@media (max-width: 768px) {
+    .header {
+        padding: 1rem;
     }
-
-    // Calcula os limites das formas para normalizar as posições
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-
-    component.shapes.forEach(shape => {
-        const x = shape.position ? shape.position.x : 0;
-        const y = shape.position ? shape.position.y : 0;
-        minX = Math.min(minX, x);
-        minY = Math.min(minY, y);
-        maxX = Math.max(maxX, x + 60); // assumindo tamanho padrão de 60px
-        maxY = Math.max(maxY, y + 60);
-    });
-
-    const width = maxX - minX || 60;
-    const height = maxY - minY || 60;
-    const scale = Math.min(50 / width, 40 / height); // escala para caber no preview
-
-    return component.shapes.map(shape => {
-        const x = shape.position ? (shape.position.x - minX) * scale : 0;
-        const y = shape.position ? (shape.position.y - minY) * scale : 0;
-        const size = 12 * scale;
-
-        return `<div style="position: absolute; left: ${x}px; top: ${y}px; width: ${size}px; height: ${size}px;">
-            ${createMiniShapeContent(shape, size)}
-        </div>`;
-    }).join('');
-}
-
-//Criar conteúdo miniaturizado da forma
-function createMiniShapeContent(shape, size) {
-    const miniShapeMap = {
-        'circle': `<div style="width: ${size}px; height: ${size}px; border-radius: 50%; background-color: ${shape.color}; border: 1px solid ${shape.color};"></div>`,
-        'square': `<div style="width: ${size}px; height: ${size}px; background-color: ${shape.color}; border: 1px solid ${shape.color};"></div>`,
-        'triangle': `<div style="width: 0; height: 0; border-left: ${size / 2}px solid transparent; border-right: ${size / 2}px solid transparent; border-bottom: ${size}px solid ${shape.color};"></div>`,
-        'rectangle': `<div style="width: ${size * 1.5}px; height: ${size}px; background-color: ${shape.color}; border: 1px solid ${shape.color};"></div>`,
-        'diamond': `<div style="width: ${size}px; height: ${size}px; background-color: ${shape.color}; transform: rotate(45deg); border: 1px solid ${shape.color};"></div>`,
-        'star': `<div style="font-size: ${size}px; color: ${shape.color};">⭐</div>`,
-        'line': `<div style="width: ${size}px; height: 2px; background-color: ${shape.color};"></div>`,
-        'hexagon': `<div style="font-size: ${size}px; color: ${shape.color};">⬡</div>`
-    };
-    return miniShapeMap[shape.id] || `<div style="font-size: ${size}px; color: ${shape.color}">${shape.icon}</div>`;
-}
-
-// Tornar elemento arrastável dentro da área
-function makeElementDraggable(element) {
-    let isDragging = false;
-    let startX, startY, startLeft, startTop;
-
-    element.addEventListener('mousedown', (e) => {
-        if (e.target.tagName === 'BUTTON' || e.target.type === 'color') return;
-
-        isDragging = true;
-        startX = e.clientX;
-        startY = e.clientY;
-        startLeft = parseInt(element.style.left);
-        startTop = parseInt(element.style.top);
-
-        document.addEventListener('mousemove', handleMouseMove);
-        document.addEventListener('mouseup', handleMouseUp);
-
-        e.preventDefault();
-    });
-
-    function handleMouseMove(e) {
-        if (!isDragging) return;
-
-        const deltaX = e.clientX - startX;
-        const deltaY = e.clientY - startY;
-        const newLeft = startLeft + deltaX;
-        const newTop = startTop + deltaY;
-
-        const parent = element.parentElement;
-        const maxLeft = parent.clientWidth - element.offsetWidth;
-        const maxTop = parent.clientHeight - element.offsetHeight;
-
-        element.style.left = `${Math.max(0, Math.min(newLeft, maxLeft))}px`;
-        element.style.top = `${Math.max(0, Math.min(newTop, maxTop))}px`;
-    }
-
-    function handleMouseUp() {
-        isDragging = false;
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-
-        // Atualizar preview após mover
-        if (element.classList.contains('assembly-element')) {
-            updateComponentPreview();
-        } else if (element.classList.contains('assembly-component')) {
-            updateGamePreview();
-        }
-    }
-}
-
-//Remover forma da montagem
-window.removeShape = function (uniqueId) {
-    const element = document.querySelector(`[data-unique-id="${uniqueId}"]`);
-    if (element) {
-        element.remove();
-        updateComponentPreview();
-    }
-};
-
-//Remover componente do jogo
-window.removeGameComponent = function (uniqueId) {
-    const element = document.querySelector(`[data-unique-id="${uniqueId}"]`);
-    if (element) {
-        element.remove();
-        updateGamePreview();
-    }
-};
-
-// Limpar área de montagem de componentes
-function clearShapeAssembly() {
-    document.getElementById('shapeAssemblyArea').innerHTML = '';
-    updateComponentPreview();
-}
-
-// Limpar área de montagem de jogos
-function clearGameAssembly() {
-    document.getElementById('gameAssemblyArea').innerHTML = '';
-    updateGamePreview();
-}
-
-// Atualizar preview do componente
-function updateComponentPreview() {
-    const assemblyArea = document.getElementById('shapeAssemblyArea');
-    const preview = document.getElementById('componentPreview');
-    const shapes = assemblyArea.querySelectorAll('.assembly-element');
-
-    if (shapes.length === 0) {
-        preview.innerHTML = '<p class="empty-state">Arraste formas para a área de montagem para criar um componente</p>';
-        return;
-    }
-
-    const shapesList = Array.from(shapes).map(shape => {
-        const shapeId = shape.dataset.shapeId;
-        const shapeData = basicShapes.find(s => s.id === shapeId);
-        return `<span class="shape-tag">${shapeData.icon} ${shapeData.name}</span>`;
-    }).join('');
-
-    preview.innerHTML = `
-        <h4>Formas utilizadas:</h4>
-        <div style="margin-top: 10px;">${shapesList}</div>
-        <p style="margin-top: 15px; color: #6c757d; font-size: 0.9rem;">
-            Total de peças: ${shapes.length}
-        </p>
-    `;
-}
-
-// Atualizar preview do jogo
-function updateGamePreview() {
-    const assemblyArea = document.getElementById('gameAssemblyArea');
-    const preview = document.getElementById('gamePreview');
-    const components = assemblyArea.querySelectorAll('.assembly-component');
-
-    if (components.length === 0) {
-        preview.innerHTML = '<p class="empty-state">Arraste componentes para a área de montagem para criar um jogo</p>';
-        return;
-    }
-
-    const componentsList = Array.from(components).map(comp => {
-        const compId = comp.dataset.componentId;
-        const compData = currentComponents[compId];
-        return `<span class="component-tag">${compData.icon} ${compData.name}</span>`;
-    }).join('');
-
-    preview.innerHTML = `
-        <h4>Componentes utilizados:</h4>
-        <div style="margin-top: 10px;">${componentsList}</div>
-        <p style="margin-top: 15px; color: #6c757d; font-size: 0.9rem;">
-            Total de componentes: ${components.length}
-        </p>
-    `;
-}
-
-// Mostrar formulário de componente
-function showComponentForm() {
-    const assemblyArea = document.getElementById('shapeAssemblyArea');
-    const shapes = assemblyArea.querySelectorAll('.assembly-element');
-
-    if (shapes.length === 0) {
-        showAlert('Adicione pelo menos uma forma antes de salvar o componente!');
-        return;
-    }
-
-    document.getElementById('componentForm').classList.remove('hidden');
-}
-
-// Mostrar formulário de jogo
-function showGameForm() {
-    const assemblyArea = document.getElementById('gameAssemblyArea');
-    const components = assemblyArea.querySelectorAll('.assembly-component');
-
-    if (components.length === 0) {
-        showAlert('Adicione pelo menos um componente antes de salvar o jogo!');
-        return;
-    }
-
-    document.getElementById('gameForm').classList.remove('hidden');
-}
-
-//Salvar componente
-function saveComponent() {
-    const name = document.getElementById('componentName').value.trim();
-
-    if (!name) {
-        showAlert('Por favor, digite um nome para o componente!');
-        return;
-    }
-
-    const assemblyArea = document.getElementById('shapeAssemblyArea');
-    const shapes = Array.from(assemblyArea.querySelectorAll('.assembly-element')).map(shape => {
-        const shapeId = shape.dataset.shapeId;
-        const shapeData = basicShapes.find(s => s.id === shapeId);
-
-        const figure = shape.querySelector('.shape-figure');
-        const customColor = figure && figure.style.backgroundColor ? 
-            figure.style.backgroundColor : shapeData.color;
-
-        return {
-            ...shapeData,
-            color: customColor,
-            position: {
-                x: parseInt(shape.style.left),
-                y: parseInt(shape.style.top)
-            },
-            size: {
-                width: parseInt(shape.style.width),
-                height: parseInt(shape.style.height)
-            },
-            rotation: parseInt(shape.dataset.rotation || '0')
-        };
-    });
-
-    if (shapes.length === 0) {
-        showAlert('Adicione pelo menos uma forma antes de salvar o componente!');
-        return;
-    }
-
-    const componentId = `comp-${Date.now()}`;
-    const component = {
-        id: componentId,
-        name,
-        icon: '🔧', // Ícone padrão
-        category: 'Peça Básica', // Categoria padrão
-        shapes,
-        createdAt: new Date().toISOString()
-    };
-
-    currentComponents[componentId] = component;
-    saveToStorage();
-    displayComponents();
-    updateComponentsSelection();
-
-    document.getElementById('componentName').value = '';
-    document.getElementById('componentForm').classList.add('hidden');
-    clearShapeAssembly();
-
-    showAlert('Componente salvo com sucesso!');
-}
-
-// Salvar jogo
-function saveGame() {
-    const name = document.getElementById('gameName').value.trim();
-
-    if (!name) {
-        showAlert('Por favor, digite um nome para o jogo!');
-        return;
-    }
-
-    const assemblyArea = document.getElementById('gameAssemblyArea');
-    const components = Array.from(assemblyArea.querySelectorAll('.assembly-component')).map(comp => {
-        const compId = comp.dataset.componentId;
-        const compData = currentComponents[compId];
-        return {
-            ...compData,
-            position: {
-                x: parseInt(comp.style.left),
-                y: parseInt(comp.style.top)
-            }
-        };
-    });
-
-    const gameId = `game-${Date.now()}`;
-    const game = {
-        id: gameId,
-        name,
-        description: '', // Descrição vazia
-        components,
-        createdAt: new Date().toISOString()
-    };
-
-    currentGames[gameId] = game;
-    saveToStorage();
-    displayGames();
-
-    document.getElementById('gameName').value = '';
-    document.getElementById('gameForm').classList.add('hidden');
-    clearGameAssembly();
-
-    showAlert('Jogo salvo com sucesso!');
-}
-
-// Exibir componentes na biblioteca
-function displayComponents() {
-    const grid = document.getElementById('componentsGrid');
-    const components = Object.values(currentComponents);
-
-    if (components.length === 0) {
-        grid.innerHTML = '<p class="empty-state">Seus componentes criados aparecerão aqui</p>';
-        return;
-    }
-
-    grid.innerHTML = components.map(comp => `
-        <div class="component-card">
-            <div class="component-header">
-                <span class="component-icon">${comp.icon}</span>
-                <span class="component-name">${comp.name}</span>
-            </div>
-            <div class="component-category">${comp.category}</div>
-            <div class="component-shapes">
-                <strong>Formas:</strong> ${comp.shapes.map(s => `${s.icon} ${s.name}`).join(', ')}
-            </div>
-            <div class="controls">
-                <button onclick="deleteComponent('${comp.id}')" class="button button-danger" style="padding: 0.5rem 1rem; font-size: 0.8rem;">🗑️ Excluir</button>
-            </div>
-        </div>
-    `).join('');
-}
-
-// Exibir jogos na biblioteca
-function displayGames() {
-    const grid = document.getElementById('gamesGrid');
-    const games = Object.values(currentGames);
-
-    if (games.length === 0) {
-        grid.innerHTML = '<p class="empty-state">Seus jogos criados aparecerão aqui</p>';
-        return;
-    }
-
-    grid.innerHTML = games.map(game => `
-        <div class="game-card">
-            <div class="game-title">${game.name}</div>
-            <div class="game-description">${game.description || 'Sem descrição'}</div>
-            <div class="game-components">
-                <h4>Componentes:</h4>
-                <div class="components-chips">
-                    ${game.components.map(comp => `
-                        <span class="component-chip">${comp.icon} ${comp.name}</span>
-                    `).join('')}
-                </div>
-            </div>
-            <div class="game-actions">
-                <button onclick="exportGameToDXF('${game.id}')" class="button button-success" style="padding: 0.5rem 1rem; font-size: 0.8rem;">📐 Exportar DXF</button>
-                <button onclick="deleteGame('${game.id}')" class="button button-danger" style="padding: 0.5rem 1rem; font-size: 0.8rem;">🗑️ Excluir</button>
-            </div>
-        </div>
-    `).join('');
-}
-
-//Atualizar seleção de componentes na aba de jogos
-function updateComponentsSelection() {
-    const selection = document.getElementById('componentsSelection');
-    const components = Object.values(currentComponents);
-
-    if (components.length === 0) {
-        selection.innerHTML = '<p class="empty-state">Crie componentes primeiro para montar jogos</p>';
-        return;
-    }
-
-    selection.innerHTML = components.map(comp => `
-        <div class="component-item" draggable="true" data-component-id="${comp.id}">
-            <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">${comp.icon}</div>
-            <div style="font-size: 0.8rem; font-weight: 600;">${comp.name}</div>
-            <div style="font-size: 0.7rem; color: #6c757d;">${comp.category}</div>
-        </div>
-    `).join('');
-
-    //Adicionar event listeners para drag com referência direta
-    const componentItems = selection.querySelectorAll('.component-item');
-    componentItems.forEach(item => {
-        item.addEventListener('dragstart', (e) => {
-            const componentId = e.target.dataset.componentId;
-            const component = currentComponents[componentId];
-
-            if (component) {
-                draggedElement = {
-                    type: 'component',
-                    data: component
-                };
-                e.dataTransfer.effectAllowed = 'copy';
-                e.dataTransfer.setData('text/plain', '');
-            }
-        });
-
-        item.addEventListener('dragend', (e) => {
-            draggedElement = null;
-        });
-    });
-}
-
-// Excluir componente
-function deleteComponent(componentId) {
-    showConfirm('Tem certeza que deseja excluir este componente?', (confirmed) => {
-        if (confirmed) {
-            delete currentComponents[componentId];
-            saveToStorage();
-            displayComponents();
-            updateComponentsSelection();
-        }
-    });
-}
-
-// Excluir jogo
-function deleteGame(gameId) {
-    showConfirm('Tem certeza que deseja excluir este jogo?', (confirmed) => {
-        if (confirmed) {
-            delete currentGames[gameId];
-            saveToStorage();
-            displayGames();
-        }
-    });
-}
-// Salvar dados no armazenamento
-function saveToStorage() {
-    console.log('Dados salvos em memória:', {
-        components: Object.keys(currentComponents).length,
-        games: Object.keys(currentGames).length
-    });
-}
-
-// Carregar dados salvos
-function loadSavedData() {
-    displayComponents();
-    displayGames();
-}
-
-// Cria o conteúdo visual da forma
-function createShapeContent(shape) {
-    const shapeMap = {
-        'circle': '<div class="shape-figure circle-fig"></div>',
-        'square': '<div class="shape-figure square-fig"></div>',
-        'triangle': '<div class="shape-figure triangle-fig"></div>',
-        'rectangle': '<div class="shape-figure rectangle-fig"></div>',
-        'diamond': '<div class="shape-figure diamond-fig"></div>',
-        'star': '<div class="shape-figure star-fig"></div>',
-        'line': '<div class="shape-figure line-fig"></div>',
-        'hexagon': '<div class="shape-figure hexagon-fig"></div>'
-    };
-    return shapeMap[shape.id] || `<div class="shape-figure" style="color: ${shape.color}">${shape.icon}</div>`;
-}
-
-// Selecionar elemento
-function selectElement(element) {
-    document.querySelectorAll('.assembly-element.selected').forEach(el => {
-        el.classList.remove('selected');
-    });
-    element.classList.add('selected');
-}
-
-// Tornar elemento redimensionável
-function makeElementResizable(element) {
-    const resizeHandle = element.querySelector('.resize-handle');
-
-    resizeHandle.addEventListener('mousedown', (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-
-        const startX = e.clientX;
-        const startY = e.clientY;
-        const startWidth = element.offsetWidth;
-        const startHeight = element.offsetHeight;
-
-        function handleResize(e) {
-            const newWidth = startWidth + (e.clientX - startX);
-            const newHeight = startHeight + (e.clientY - startY);
-
-            const minSize = 20;
-            const maxSize = 200;
-
-            const finalWidth = Math.max(minSize, Math.min(maxSize, newWidth));
-            const finalHeight = Math.max(minSize, Math.min(maxSize, newHeight));
-
-            element.style.width = `${finalWidth}px`;
-            element.style.height = `${finalHeight}px`;
-
-            const figure = element.querySelector('.shape-figure');
-            if (figure) {
-                figure.style.width = '100%';
-                figure.style.height = '100%';
-            }
-        }
-
-        function stopResize() {
-            document.removeEventListener('mousemove', handleResize);
-            document.removeEventListener('mouseup', stopResize);
-            updateComponentPreview();
-        }
-
-        document.addEventListener('mousemove', handleResize);
-        document.addEventListener('mouseup', stopResize);
-    });
-}
-
-//Rodar a forma
-function rotateShape(uniqueId) {
-    const element = document.querySelector(`[data-unique-id="${uniqueId}"]`);
-    if (!element) return;
-
-    const figure = element.querySelector('.shape-figure');
-    const currentRotation = parseInt(element.dataset.rotation || '0');
-    const newRotation = (currentRotation + 45) % 360;
-
-    element.dataset.rotation = newRotation;
-    figure.style.transform = `rotate(${newRotation}deg)`;
-
-    updateComponentPreview();
-}
-
-// Mudar a cor da forma
-function changeShapeColor(uniqueId, color) {
-    const element = document.querySelector(`[data-unique-id="${uniqueId}"]`);
-    if (!element) return;
-
-    const figure = element.querySelector('.shape-figure');
-    figure.style.backgroundColor = color;
-    figure.style.borderColor = color;
-
-    // Esconder o seletor de cor após a mudança
-    const colorPicker = document.getElementById(`colorPicker-${uniqueId}`);
-    if (colorPicker) {
-        colorPicker.classList.add('hidden');
-    }
-
-    updateComponentPreview();
-}
-
-// Alternar o seletor de cor com posicionamento correto
-function toggleColorPicker(uniqueId) {
-    const colorPicker = document.getElementById(`colorPicker-${uniqueId}`);
-    const colorButton = document.querySelector(`[data-unique-id="${uniqueId}"] .color-btn`);
-
-    if (!colorPicker || !colorButton) return;
-
-    if (colorPicker.classList.contains('hidden')) {
-        // Esconder todos os outros seletores de cor primeiro
-        document.querySelectorAll('.color-picker').forEach(picker => {
-            picker.classList.add('hidden');
-        });
-
-        // Posicionar o seletor de cor próximo ao botão
-        const buttonRect = colorButton.getBoundingClientRect();
-        const element = colorButton.closest('.assembly-element');
-        const elementRect = element.getBoundingClientRect();
-
-        // Calcular posição relativa ao elemento pai
-        const relativeX = buttonRect.left - elementRect.left;
-        const relativeY = buttonRect.bottom - elementRect.top + 5; // 5px abaixo do botão
-
-        colorPicker.style.position = 'absolute';
-        colorPicker.style.left = `${relativeX}px`;
-        colorPicker.style.top = `${relativeY}px`;
-        colorPicker.style.zIndex = '1000';
-
-        // Mostrar o seletor atual
-        colorPicker.classList.remove('hidden');
-
-        // Pequeno delay para garantir que o elemento esteja visível antes de abrir
-        setTimeout(() => {
-            colorPicker.click();
-        }, 10);
-    } else {
-        colorPicker.classList.add('hidden');
-    }
-}
-
-// Desselecionar ao clicar na área de montagem
-document.addEventListener('DOMContentLoaded', function () {
-    const shapeAssemblyArea = document.getElementById('shapeAssemblyArea');
-    if (shapeAssemblyArea) {
-        shapeAssemblyArea.addEventListener('click', (e) => {
-            if (e.target === shapeAssemblyArea) {
-                document.querySelectorAll('.assembly-element.selected').forEach(el => {
-                    el.classList.remove('selected');
-                });
-                // Esconder todos os seletores de cor
-                document.querySelectorAll('.color-picker').forEach(picker => {
-                    picker.classList.add('hidden');
-                });
-            }
-        });
-    }
-});
-
-//Função para garantir que os componentes sejam atualizados quando mudamos de aba
-window.addEventListener('DOMContentLoaded', function () {
-    const observer = new MutationObserver(function (mutations) {
-        mutations.forEach(function (mutation) {
-            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                const gameTab = document.getElementById('game-creator');
-                if (gameTab && gameTab.classList.contains('active')) {
-                    setTimeout(() => {
-                        updateComponentsSelection();
-                    }, 100);
-                }
-            }
-        });
-    });
-
-    const gameTab = document.getElementById('game-creator');
-    if (gameTab) {
-        observer.observe(gameTab, { attributes: true, attributeFilter: ['class'] });
-    }
-});
-
-//Função para atualizar componentes quando a aba de jogos é ativada
-function refreshComponentsForGame() {
-    updateComponentsSelection();
-}
-
-// Funções para modais personalizados
-function showAlert(message) {
-    const modal = document.getElementById('alertModal');
-    const messageElement = document.getElementById('alertMessage');
     
-    messageElement.textContent = message;
-    modal.classList.add('active');
+    .header h1 {
+        font-size: 1.8rem;
+    }
     
-    document.getElementById('alertOk').onclick = function() {
-        modal.classList.remove('active');
-    };
-}
-
-function showConfirm(message, callback) {
-    const modal = document.getElementById('confirmModal');
-    const messageElement = document.getElementById('confirmMessage');
+    .tabs {
+        gap: 0.25rem;
+    }
     
-    messageElement.textContent = message;
-    modal.classList.add('active');
+    .tab-button {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.8rem;
+    }
     
-    document.getElementById('confirmYes').onclick = function() {
-        modal.classList.remove('active');
-        callback(true);
-    };
+    .container {
+        padding: 0 1rem;
+        margin: 1rem auto;
+    }
     
-    document.getElementById('confirmNo').onclick = function() {
-        modal.classList.remove('active');
-        callback(false);
-    };
-}
-
-function exportGameToDXF(gameId) {
-    const game = currentGames[gameId];
-    if (!game) {
-        showAlert('Jogo não encontrado!');
-        return;
+    .tab-content {
+        padding: 1.5rem;
     }
-
-    // Validar se o jogo tem componentes válidos
-    const validation = validateGameForDXF(game);
-    if (!validation.valid) {
-        showAlert(validation.message);
-        return;
+    
+    .section-header h2 {
+        font-size: 1.5rem;
     }
-
-    // Cabeçalho DXF corrigido com unidades em milímetros
-    let dxfContent = `0
-SECTION
-2
-HEADER
-9
-$ACADVER
-1
-AC1015
-9
-$INSUNITS
-70
-4
-9
-$MEASUREMENT
-70
-1
-0
-ENDSEC
-0
-SECTION
-2
-TABLES
-0
-TABLE
-2
-LAYER
-70
-2
-0
-LAYER
-2
-0
-70
-0
-62
-7
-6
-CONTINUOUS
-0
-LAYER
-2
-SHAPES
-70
-0
-62
-1
-6
-CONTINUOUS
-0
-ENDTAB
-0
-ENDSEC
-0
-SECTION
-2
-ENTITIES
-`;
-
-    let entityCount = 0;
-
-    // Processar cada componente do jogo
-    game.components.forEach((component, compIndex) => {
-        if (component.shapes && component.shapes.length > 0) {
-            component.shapes.forEach((shape, shapeIndex) => {
-                // Calcular posições absolutas corretamente
-                const compX = parseFloat(component.position?.x) || 0;
-                const compY = parseFloat(component.position?.y) || 0;
-                const shapeX = parseFloat(shape.position?.x) || 0;
-                const shapeY = parseFloat(shape.position?.y) || 0;
-
-                // Posição final da forma
-                const x = compX + shapeX;
-                const y = compY + shapeY;
-
-                // Dimensões da forma
-                const width = parseFloat(shape.size?.width) || 60;
-                const height = parseFloat(shape.size?.height) || 60;
-
-                // Rotação da forma (se houver)
-                const rotation = parseFloat(shape.rotation) || 0;
-
-                // Converter pixels para milímetros (assumindo 96 DPI)
-                const scale = 25.4 / 96; // conversão px para mm
-                const scaledX = x * scale;
-                const scaledY = y * scale;
-                const scaledWidth = width * scale;
-                const scaledHeight = height * scale;
-
-                // Converter formas para entidades DXF
-                switch (shape.id) {
-                    case 'circle':
-                        dxfContent += `0
-CIRCLE
-8
-SHAPES
-10
-${(scaledX + scaledWidth / 2).toFixed(3)}
-20
-${(scaledY + scaledHeight / 2).toFixed(3)}
-40
-${(Math.min(scaledWidth, scaledHeight) / 2).toFixed(3)}
-`;
-                        entityCount++;
-                        break;
-
-                    case 'square':
-                    case 'rectangle':
-                        // Criar retângulo usando LWPOLYLINE fechada
-                        const rectPoints = [
-                            [scaledX, scaledY],
-                            [scaledX + scaledWidth, scaledY],
-                            [scaledX + scaledWidth, scaledY + scaledHeight],
-                            [scaledX, scaledY + scaledHeight]
-                        ];
-
-                        // Aplicar rotação se necessário
-                        const rotatedRectPoints = rotation !== 0 ?
-                            rotatePoints(rectPoints, scaledX + scaledWidth / 2, scaledY + scaledHeight / 2, rotation) :
-                            rectPoints;
-
-                        dxfContent += `0
-LWPOLYLINE
-8
-SHAPES
-90
-4
-70
-1
-`;
-                        rotatedRectPoints.forEach(point => {
-                            dxfContent += `10
-${point[0].toFixed(3)}
-20
-${point[1].toFixed(3)}
-`;
-                        });
-                        entityCount++;
-                        break;
-
-                    case 'triangle':
-                        // Criar triângulo equilátero usando LWPOLYLINE
-                        const triPoints = [
-                            [scaledX + scaledWidth / 2, scaledY], // topo
-                            [scaledX + scaledWidth, scaledY + scaledHeight], // inferior direito
-                            [scaledX, scaledY + scaledHeight] // inferior esquerdo
-                        ];
-
-                        const rotatedTriPoints = rotation !== 0 ?
-                            rotatePoints(triPoints, scaledX + scaledWidth / 2, scaledY + scaledHeight / 2, rotation) :
-                            triPoints;
-
-                        dxfContent += `0
-LWPOLYLINE
-8
-SHAPES
-90
-3
-70
-1
-`;
-                        rotatedTriPoints.forEach(point => {
-                            dxfContent += `10
-${point[0].toFixed(3)}
-20
-${point[1].toFixed(3)}
-`;
-                        });
-                        entityCount++;
-                        break;
-
-                    case 'line':
-                        // Criar linha horizontal (pode ser rotacionada)
-                        let lineStart = [scaledX, scaledY + scaledHeight / 2];
-                        let lineEnd = [scaledX + scaledWidth, scaledY + scaledHeight / 2];
-
-                        if (rotation !== 0) {
-                            const center = [scaledX + scaledWidth / 2, scaledY + scaledHeight / 2];
-                            lineStart = rotatePoint(lineStart[0], lineStart[1], center[0], center[1], rotation);
-                            lineEnd = rotatePoint(lineEnd[0], lineEnd[1], center[0], center[1], rotation);
-                        }
-
-                        dxfContent += `0
-LINE
-8
-SHAPES
-10
-${lineStart[0].toFixed(3)}
-20
-${lineStart[1].toFixed(3)}
-11
-${lineEnd[0].toFixed(3)}
-21
-${lineEnd[1].toFixed(3)}
-`;
-                        entityCount++;
-                        break;
-
-                    case 'diamond':
-                        // Criar losango usando LWPOLYLINE
-                        const diamondPoints = [
-                            [scaledX + scaledWidth / 2, scaledY], // topo
-                            [scaledX + scaledWidth, scaledY + scaledHeight / 2], // direita
-                            [scaledX + scaledWidth / 2, scaledY + scaledHeight], // baixo
-                            [scaledX, scaledY + scaledHeight / 2] // esquerda
-                        ];
-
-                        const rotatedDiamondPoints = rotation !== 0 ?
-                            rotatePoints(diamondPoints, scaledX + scaledWidth / 2, scaledY + scaledHeight / 2, rotation) :
-                            diamondPoints;
-
-                        dxfContent += `0
-LWPOLYLINE
-8
-SHAPES
-90
-4
-70
-1
-`;
-                        rotatedDiamondPoints.forEach(point => {
-                            dxfContent += `10
-${point[0].toFixed(3)}
-20
-${point[1].toFixed(3)}
-`;
-                        });
-                        entityCount++;
-                        break;
-
-                    case 'hexagon':
-                        // Criar hexágono regular usando LWPOLYLINE
-                        const cx = scaledX + scaledWidth / 2;
-                        const cy = scaledY + scaledHeight / 2;
-                        const r = Math.min(scaledWidth, scaledHeight) / 2;
-
-                        const hexPoints = [];
-                        for (let i = 0; i < 6; i++) {
-                            const angle = (i * 60 + rotation) * Math.PI / 180;
-                            hexPoints.push([
-                                cx + r * Math.cos(angle),
-                                cy + r * Math.sin(angle)
-                            ]);
-                        }
-
-                        dxfContent += `0
-LWPOLYLINE
-8
-SHAPES
-90
-6
-70
-1
-`;
-                        hexPoints.forEach(point => {
-                            dxfContent += `10
-${point[0].toFixed(3)}
-20
-${point[1].toFixed(3)}
-`;
-                        });
-                        entityCount++;
-                        break;
-
-                    case 'star':
-                        // Criar estrela de 5 pontas usando LWPOLYLINE
-                        const starCx = scaledX + scaledWidth / 2;
-                        const starCy = scaledY + scaledHeight / 2;
-                        const outerR = Math.min(scaledWidth, scaledHeight) / 2;
-                        const innerR = outerR * 0.4; // raio interno 40% do externo
-
-                        const starPoints = [];
-                        for (let i = 0; i < 10; i++) {
-                            const angle = (i * 36 + rotation) * Math.PI / 180;
-                            const radius = i % 2 === 0 ? outerR : innerR;
-                            starPoints.push([
-                                starCx + radius * Math.cos(angle),
-                                starCy + radius * Math.sin(angle)
-                            ]);
-                        }
-
-                        dxfContent += `0
-LWPOLYLINE
-8
-SHAPES
-90
-10
-70
-1
-`;
-                        starPoints.forEach(point => {
-                            dxfContent += `10
-${point[0].toFixed(3)}
-20
-${point[1].toFixed(3)}
-`;
-                        });
-                        entityCount++;
-                        break;
-
-                    default:
-                        // Para formas não suportadas, criar um círculo de referência
-                        dxfContent += `0
-CIRCLE
-8
-SHAPES
-10
-${(scaledX + scaledWidth / 2).toFixed(3)}
-20
-${(scaledY + scaledHeight / 2).toFixed(3)}
-40
-${(Math.min(scaledWidth, scaledHeight) / 2).toFixed(3)}
-`;
-                        entityCount++;
-                        break;
-                }
-            });
-        }
-    });
-
-    // Finalizar o arquivo DXF
-    dxfContent += `0
-ENDSEC
-0
-EOF`;
-
-    // Verificar se há entidades para exportar
-    if (entityCount === 0) {
-        showAlert('Nenhuma forma válida encontrada para exportar!');
-        return;
+    
+    .workspace {
+        grid-template-columns: 1fr;
+        gap: 1rem;
     }
-
-    // Criar e baixar o arquivo
-    try {
-        const blob = new Blob([dxfContent], { type: 'application/dxf' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${game.name.replace(/[^a-zA-Z0-9\-_]/g, '_')}.dxf`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-
-        showAlert(`Arquivo DXF exportado com sucesso!\n\nJogo: ${game.name}\nFormas exportadas: ${entityCount}\nUnidades: milímetros`);
-    } catch (error) {
-        console.error('Erro ao exportar DXF:', error);
-        showAlert('Erro ao exportar arquivo DXF. Verifique o console para mais detalhes.');
+    
+    .shapes-grid {
+        grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+        gap: 0.75rem;
+    }
+    
+    .assembly-area {
+        min-height: 300px;
+    }
+    
+    .library-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .modal-content {
+        padding: 1.5rem;
+        margin: 1rem;
+    }
+    
+    .modal-buttons {
+        flex-direction: column;
+        gap: 0.75rem;
     }
 }
 
-// Função auxiliar para rotacionar um ponto
-function rotatePoint(x, y, centerX, centerY, angle) {
-    const rad = angle * Math.PI / 180;
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-
-    const dx = x - centerX;
-    const dy = y - centerY;
-
-    return [
-        centerX + dx * cos - dy * sin,
-        centerY + dx * sin + dy * cos
-    ];
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-// Função auxiliar para rotacionar múltiplos pontos
-function rotatePoints(points, centerX, centerY, angle) {
-    return points.map(point => rotatePoint(point[0], point[1], centerX, centerY, angle));
+.tab-content.active {
+    animation: fadeIn 0.3s ease-out;
 }
 
-// Função para validar dados antes da exportação
-function validateGameForDXF(game) {
-    if (!game.components || game.components.length === 0) {
-        return { valid: false, message: 'O jogo não possui componentes para exportar.' };
-    }
+.tab-button:focus,
+.btn:focus,
+.shape:focus,
+.component-item:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+}
 
-    let totalShapes = 0;
-    for (const component of game.components) {
-        if (component.shapes && component.shapes.length > 0) {
-            totalShapes += component.shapes.length;
-        }
-    }
+* {
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
 
-    if (totalShapes === 0) {
-        return { valid: false, message: 'O jogo não possui formas válidas para exportar.' };
-    }
+.confirm-message,
+.alert-message {
+    text-align: left;
+    line-height: 1.6;
+    white-space: pre-line;
+}
 
-    return { valid: true, totalShapes };
+.confirm-message strong,
+.alert-message strong {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.alert-message div {
+    margin-bottom: 5px;
+}
+
+.preview-content {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    min-height: 150px;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.preview-content h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #374151;
+    margin: 0;
+}
+
+.total-shapes {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #f8fafc;
+    padding: 0.5rem;
+    border-radius: 6px;
+}
+
+.total-number {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #667eea;
+}
+
+.total-label {
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+.shapes-list, .components-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.shape-count-item, .component-count-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: #f8fafc;
+    border-radius: 6px;
+}
+
+.shape-icon, .component-icon {
+    font-size: 1rem;
+}
+
+.shape-name, .component-name {
+    flex: 1;
+    font-size: 0.9rem;
+}
+
+.shape-count, .component-count {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    background: white;
+    padding: 0.2rem 0.5rem;
+    border-radius: 10px;
 }
